@@ -22,6 +22,8 @@ STATIC_FILES = {
     "/": ("index.html", "text/html; charset=utf-8"),
     "/app.js": ("app.js", "text/javascript; charset=utf-8"),
     "/style.css": ("style.css", "text/css; charset=utf-8"),
+    "/pixel.css": ("pixel.css", "text/css; charset=utf-8"),
+    "/mascot.svg": ("mascot.svg", "image/svg+xml"),
     "/favicon.svg": ("favicon.svg", "image/svg+xml"),
     "/manifest.webmanifest": ("manifest.webmanifest", "application/manifest+json"),
 }

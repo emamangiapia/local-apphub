@@ -57,7 +57,15 @@ class AuthServerTests(unittest.TestCase):
         status, headers, body = self.req("GET", "/")
         self.assertEqual(status, 200)
         self.assertIn(b"Local AppHub", body)
+        self.assertIn(b"/pixel.css", body)
         self.assertIn("Content-Security-Policy", headers)
+        code, headers, css = self.req("GET", "/pixel.css")
+        self.assertEqual(code, 200)
+        self.assertIn(b"Pixel Arcade skin", css)
+        self.assertEqual(headers["Content-Type"], "text/css; charset=utf-8")
+        code, _, sprite = self.req("GET", "/mascot.svg")
+        self.assertEqual(code, 200)
+        self.assertIn(b"shape-rendering=\"crispEdges\"", sprite)
 
 
 class FirstRunTests(unittest.TestCase):

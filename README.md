@@ -4,11 +4,11 @@
 
 Local AppHub è un pannello per gestire applicazioni Docker ospitate sul proprio PC. Ogni app mantiene la sua repository GitHub; l'hub legge un catalogo personale, controlla gli aggiornamenti e può installare nuove app automaticamente. La dashboard è pensata anche per il browser del telefono.
 
-> **Versione 0.2.0, MVP pubblico.** Codice e cronologia sono indipendenti dalla vecchia repository privata. Non sono inclusi dati personali, cataloghi reali, password o indirizzi domestici.
+> **Versione 0.3.0, MVP pubblico.** Codice e cronologia sono indipendenti dalla vecchia repository privata. Non sono inclusi dati personali, cataloghi reali, password o indirizzi domestici.
 
 ## Cosa fa
 
-- Dashboard responsive con categorie, ricerca, stato, pulsanti Installa, Aggiorna, Pausa, Riavvia e Apri.
+- Dashboard **pixel art** responsive, ispirata a una console 8-bit: icone pixel, pannelli da videogioco e colori arcade, con categorie, ricerca, stato e comandi delle app leggibili anche da smartphone.
 - **Prima configurazione guidata** dal browser: password, catalogo personale e controllo dei prerequisiti.
 - **Gestione completa delle repository dalla GUI:** aggiungi, modifica e rimuovi app, scegli branch, file Compose, categoria e deploy automatico.
 - Se usi un catalogo GitHub privato, le modifiche fatte nella GUI vengono committate e inviate al tuo repository con **push non forzati**.
@@ -147,6 +147,10 @@ Il supervisore parte **al login Windows**, non semplicemente all'accensione elet
 Per impostazione predefinita la dashboard ascolta **solo su `127.0.0.1`**. Per usarla fuori casa configura una **VPN privata**, per esempio Tailscale, e un accesso HTTPS al servizio locale. Non esporre direttamente la porta 8766 su Internet.
 
 Self-hosted non vuol dire automaticamente sicuro. I container possono eseguire software e accedere a dati secondo i permessi concessi; abilita il deploy automatico solo per repository affidabili, non usare container privilegiati e non pubblicare `.env` o segreti. Vedi [`docs/SICUREZZA.md`](docs/SICUREZZA.md).
+
+### Tema pixel art
+
+L'interfaccia usa un tema arcade 8-bit predefinito, implementato con CSS e piccole illustrazioni SVG locali. Non carica font o immagini da CDN. Lo stile è separato in [`apphub/static/pixel.css`](apphub/static/pixel.css), così si può aggiornare il design senza toccare la logica del dashboard o le schermate di configurazione.
 
 ## Setup automatico con Codex, Claude e altri agenti AI
 

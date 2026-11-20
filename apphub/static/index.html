@@ -3,11 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0a111b">
+  <meta name="theme-color" content="#11142a">
   <meta name="description" content="Le tue applicazioni, il tuo computer. Dashboard locale di iPhone Facile.">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/pixel.css">
   <title>Local AppHub | iPhone Facile</title>
   <script src="/app.js" defer></script>
 </head>
@@ -26,12 +27,12 @@
       </nav>
       <div class="sidebar-spacer"></div>
       <div class="local-callout"><span class="green-dot"></span><div><strong>Il tuo spazio privato</strong><small>Le app girano sul tuo computer</small></div></div>
-        <div class="sidebar-footer"><span>LOCAL APPHUB</span><small>v0.2.0</small></div>
+      <div class="sidebar-footer"><span>LOCAL APPHUB</span><small>v0.3.0</small></div>
     </aside>
 
     <main class="main-content">
       <header class="topbar">
-        <div class="breadcrumb">Workspace <span>/</span> <strong>Panoramica</strong></div>
+        <div class="breadcrumb"><span class="pixel-square" aria-hidden="true"></span> LOCAL SYSTEM <span>/</span> <strong>Panoramica</strong></div>
         <div class="top-actions">
           <div class="network-indicator"><span class="green-dot"></span> In locale</div>
           <button class="icon-button" id="logoutButton" type="button" title="Esci dalla dashboard" aria-label="Esci">↪</button>
@@ -40,13 +41,16 @@
 
       <div class="content-wrap">
         <section class="intro">
-          <div class="eyebrow"><span class="eyebrow-line"></span> IL TUO CONTROLLO, OVUNQUE</div>
+          <div class="pixel-stars" aria-hidden="true"><i></i><i></i><i></i></div>
+          <div class="hero-mascot" aria-hidden="true"><div class="mascot-glow"></div><img src="/mascot.svg" alt="" width="180" height="180"><span class="mascot-caption">SYSTEM ONLINE_</span></div>
+          <div class="eyebrow"><span class="eyebrow-line"></span> [ PLAYER 01 ] IL TUO SPAZIO DIGITALE</div>
           <div class="heading-row">
             <div><h1>Le tue app.<br><em>Un unico posto.</em></h1><p>Gestisci e avvia tutte le tue applicazioni self-hosted, direttamente dal tuo spazio personale.</p></div>
             <button class="primary-button" id="syncButton" type="button"><span class="sync-icon" aria-hidden="true">↻</span> Sincronizza ora</button>
           </div>
         </section>
 
+        <div class="level-divider" aria-hidden="true"><span>● ● ●</span><span>01 / SYSTEM STATUS</span><span>+ + +</span></div>
         <section class="stats" aria-label="Stato generale">
           <div class="stat-card"><div class="stat-label">App collegate <span class="stat-glyph">◈</span></div><div class="stat-value" id="totalApps">0</div><div class="stat-foot">Nel tuo catalogo</div></div>
           <div class="stat-card"><div class="stat-label">In esecuzione <span class="stat-glyph running-glyph">●</span></div><div class="stat-value" id="runningApps">0</div><div class="stat-foot"><span class="green-dot"></span> Disponibili ora</div></div>
@@ -55,11 +59,11 @@
         </section>
 
         <section class="apps-section" id="applications">
-          <div class="section-head"><div><div class="eyebrow subdued">LA TUA RACCOLTA</div><h2>Applicazioni <span class="count-chip" id="collectionCount">0</span></h2></div><div class="app-head-actions"><div class="search-control"><span aria-hidden="true">⌕</span><input id="searchInput" type="search" placeholder="Cerca un'app..." aria-label="Cerca applicazioni"></div><button type="button" class="primary-button" id="addAppButton">+ Aggiungi app</button></div></div>
+          <div class="section-head"><div><div class="eyebrow subdued">[ INVENTARIO DIGITALE ]</div><h2>Applicazioni <span class="count-chip" id="collectionCount">0</span></h2></div><div class="app-head-actions"><div class="search-control"><span aria-hidden="true">⌕</span><input id="searchInput" type="search" placeholder="Cerca un'app..." aria-label="Cerca applicazioni"></div><button type="button" class="primary-button" id="addAppButton">+ Aggiungi app</button></div></div>
           <div class="filter-bar" id="categoryFilters" role="group" aria-label="Filtra per categoria"></div>
           <div class="error-banner" id="syncError" hidden></div>
           <div class="app-grid" id="appGrid" aria-live="polite"></div>
-          <div class="empty-state" id="emptyState" hidden><div class="empty-visual">✦</div><h3>Qui inizia il tuo hub</h3><p>Collega un catalogo GitHub privato oppure aggiungi la tua prima applicazione direttamente da qui.</p><button type="button" id="emptyAddButton" class="outline-button">Aggiungi la prima app <span>↗</span></button></div>
+          <div class="empty-state" id="emptyState" hidden><div class="empty-visual"><img src="/mascot.svg" alt="" width="82" height="82"></div><h3>Pronto per il livello 1?</h3><p>Collega un catalogo GitHub privato oppure aggiungi la tua prima applicazione direttamente da qui.</p><button type="button" id="emptyAddButton" class="outline-button">Aggiungi la prima app <span>↗</span></button></div>
           <div class="empty-state compact" id="noResults" hidden><h3>Nessuna app trovata</h3><p>Prova a modificare la ricerca o il filtro.</p></div>
         </section>
 
@@ -95,14 +99,14 @@
   </div>
 
   <div class="login-shell" id="loginView">
-    <div class="login-card"><div class="login-logo"><span>✦</span></div><div class="eyebrow">IPHONE FACILE PRESENTA</div><h1>Benvenuto nel tuo<br><em>Local AppHub.</em></h1><p>Le tue applicazioni, al sicuro sul tuo computer. Accedi per gestirle.</p>
+    <div class="login-card"><div class="login-logo"><img src="/mascot.svg" width="72" height="72" alt="" /></div><div class="eyebrow">IPHONE FACILE PRESENTA</div><h1>Benvenuto nel tuo<br><em>Local AppHub.</em></h1><p>Le tue applicazioni, al sicuro sul tuo computer. Accedi per gestirle.</p>
       <form id="loginForm"><label for="passwordInput">PASSWORD DASHBOARD</label><input id="passwordInput" type="password" autocomplete="current-password" required minlength="12" placeholder="La tua password"><button type="submit" class="primary-button">Entra nel tuo hub <span>→</span></button><div id="loginError" class="login-error" role="alert" hidden></div></form>
       <div class="login-footer"><span class="green-dot"></span> Accesso protetto · Dati in locale</div>
     </div>
   </div>
 
   <div class="login-shell" id="firstRunView" hidden>
-    <div class="login-card"><div class="login-logo"><span>✦</span></div><div class="eyebrow">PRIMO AVVIO · 1 DI 2</div><h1>Iniziamo dal tuo<br><em>spazio privato.</em></h1><p>Crea la password dell'hub. Poi potrai collegare le tue repository dall'interfaccia, senza modificare file di configurazione.</p>
+    <div class="login-card"><div class="login-logo"><img src="/mascot.svg" width="72" height="72" alt="" /></div><div class="eyebrow">PRIMO AVVIO · 1 DI 2</div><h1>Iniziamo dal tuo<br><em>spazio privato.</em></h1><p>Crea la password dell'hub. Poi potrai collegare le tue repository dall'interfaccia, senza modificare file di configurazione.</p>
       <form id="firstRunForm"><label for="firstPassword">CREA UNA PASSWORD (ALMENO 12 CARATTERI)</label><input id="firstPassword" type="password" autocomplete="new-password" minlength="12" required placeholder="Nuova password"><label for="confirmPassword">CONFERMA PASSWORD</label><input id="confirmPassword" type="password" autocomplete="new-password" minlength="12" required placeholder="Ripeti la password"><button type="submit" class="primary-button">Configura il mio hub <span>→</span></button><div id="firstRunError" class="login-error" role="alert" hidden></div></form>
       <div class="login-footer"><span class="green-dot"></span> Configurazione consentita soltanto sul computer locale</div>
     </div>
