@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0a111b">
+  <meta name="description" content="Le tue applicazioni, il tuo computer. Dashboard locale di iPhone Facile.">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="stylesheet" href="/style.css">
+  <title>Local AppHub | iPhone Facile</title>
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="app-shell" id="dashboard" hidden>
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-symbol" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+        <div class="brand-words"><strong>Local AppHub</strong><small>by iPhone Facile</small></div>
+      </div>
+      <div class="side-section">WORKSPACE</div>
+      <nav class="side-nav" aria-label="Navigazione">
+        <a class="nav-entry selected" href="/" aria-current="page"><span class="nav-icon">▦</span> Panoramica</a>
+        <a class="nav-entry" href="#applications"><span class="nav-icon">◈</span> Applicazioni</a>
+        <a class="nav-entry" href="#setup"><span class="nav-icon">◇</span> Configurazione</a>
+      </nav>
+      <div class="sidebar-spacer"></div>
+      <div class="local-callout"><span class="green-dot"></span><div><strong>Il tuo spazio privato</strong><small>Le app girano sul tuo computer</small></div></div>
+      <div class="sidebar-footer"><span>LOCAL APPHUB</span><small>v0.1.0</small></div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div class="breadcrumb">Workspace <span>/</span> <strong>Panoramica</strong></div>
+        <div class="top-actions">
+          <div class="network-indicator"><span class="green-dot"></span> In locale</div>
+          <button class="icon-button" id="logoutButton" type="button" title="Esci dalla dashboard" aria-label="Esci">↪</button>
+        </div>
+      </header>
+
+      <div class="content-wrap">
+        <section class="intro">
+          <div class="eyebrow"><span class="eyebrow-line"></span> IL TUO CONTROLLO, OVUNQUE</div>
+          <div class="heading-row">
+            <div><h1>Le tue app.<br><em>Un unico posto.</em></h1><p>Gestisci e avvia tutte le tue applicazioni self-hosted, direttamente dal tuo spazio personale.</p></div>
+            <button class="primary-button" id="syncButton" type="button"><span class="sync-icon" aria-hidden="true">↻</span> Sincronizza ora</button>
+          </div>
+        </section>
+
+        <section class="stats" aria-label="Stato generale">
+          <div class="stat-card"><div class="stat-label">App collegate <span class="stat-glyph">◈</span></div><div class="stat-value" id="totalApps">0</div><div class="stat-foot">Nel tuo catalogo</div></div>
+          <div class="stat-card"><div class="stat-label">In esecuzione <span class="stat-glyph running-glyph">●</span></div><div class="stat-value" id="runningApps">0</div><div class="stat-foot"><span class="green-dot"></span> Disponibili ora</div></div>
+          <div class="stat-card"><div class="stat-label">Da installare <span class="stat-glyph">↧</span></div><div class="stat-value" id="pendingApps">0</div><div class="stat-foot">Pronte per il deploy</div></div>
+          <div class="stat-card sync-stat"><div class="stat-label">Ultimo controllo <span class="stat-glyph">◷</span></div><div class="stat-value stat-time" id="lastSync">Mai</div><div class="stat-foot" id="syncFrequency">Controllo automatico ogni 60 s</div></div>
+        </section>
+
+        <section class="apps-section" id="applications">
+          <div class="section-head"><div><div class="eyebrow subdued">LA TUA RACCOLTA</div><h2>Applicazioni <span class="count-chip" id="collectionCount">0</span></h2></div><div class="search-control"><span aria-hidden="true">⌕</span><input id="searchInput" type="search" placeholder="Cerca un'app..." aria-label="Cerca applicazioni"></div></div>
+          <div class="filter-bar" id="categoryFilters" role="group" aria-label="Filtra per categoria"></div>
+          <div class="error-banner" id="syncError" hidden></div>
+          <div class="app-grid" id="appGrid" aria-live="polite"></div>
+          <div class="empty-state" id="emptyState" hidden><div class="empty-visual">✦</div><h3>Qui inizia il tuo hub</h3><p>Collega una repository privata di configurazione oppure aggiungi le tue app al file locale. Quando sono pronte, appariranno qui.</p><a href="#setup" class="outline-button">Scopri come iniziare <span>↗</span></a></div>
+          <div class="empty-state compact" id="noResults" hidden><h3>Nessuna app trovata</h3><p>Prova a modificare la ricerca o il filtro.</p></div>
+        </section>
+
+        <section class="setup-panel" id="setup"><div class="setup-mark">✧</div><div class="setup-copy"><div class="eyebrow subdued">TUTTO SOTTO CONTROLLO</div><h2>Un hub, infinite possibilità.</h2><p>Il catalogo delle app è configurabile sul tuo PC oppure in una tua repository GitHub privata. Le nuove app abilitate al deploy vengono installate automaticamente al prossimo controllo.</p><div class="setup-detail"><span id="configMode">Configurazione locale</span><span class="separator-dot">·</span><span id="syncInterval">Sincronizzazione ogni 60 secondi</span></div></div><a href="https://github.com/emamangiapia/local-apphub#configurazione-delle-app" target="_blank" rel="noopener noreferrer" class="outline-button">Guida alla configurazione ↗</a></section>
+        <footer class="page-footer"><span>© 2026 Emanuele Mangiapia · iPhone Facile</span><span>Il tuo computer. Le tue regole.</span></footer>
+      </div>
+    </main>
+  </div>
+
+  <div class="login-shell" id="loginView">
+    <div class="login-card"><div class="login-logo"><span>✦</span></div><div class="eyebrow">IPHONE FACILE PRESENTA</div><h1>Benvenuto nel tuo<br><em>Local AppHub.</em></h1><p>Le tue applicazioni, al sicuro sul tuo computer. Accedi per gestirle.</p>
+      <form id="loginForm"><label for="passwordInput">PASSWORD DASHBOARD</label><input id="passwordInput" type="password" autocomplete="current-password" required minlength="12" placeholder="La tua password"><button type="submit" class="primary-button">Entra nel tuo hub <span>→</span></button><div id="loginError" class="login-error" role="alert" hidden></div></form>
+      <div class="login-footer"><span class="green-dot"></span> Accesso protetto · Dati in locale</div>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>

@@ -1,0 +1,6 @@
+{
+  "configRepository": null,
+  "configBranch": "main",
+  "configFile": "apps.json",
+  "syncIntervalSeconds": 60
+}

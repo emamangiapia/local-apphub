@@ -1,0 +1,11 @@
+{
+  "name": "Local AppHub by iPhone Facile",
+  "short_name": "Local AppHub",
+  "description": "Le tue applicazioni self-hosted in un unico hub",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0a111b",
+  "theme_color": "#0a111b",
+  "icons": [{"src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable"}]
+}

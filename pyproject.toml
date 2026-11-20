@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "iphone-facile-local-apphub"
+version = "0.1.0"
+description = "Dashboard locale e deploy GitOps di applicazioni Docker"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [{ name = "Emanuele Mangiapia" }]
+readme = "README.md"
+
+[project.scripts]
+local-apphub = "apphub.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["apphub*"]
+
+[tool.setuptools.package-data]
+apphub = ["static/*"]

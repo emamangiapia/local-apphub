@@ -1,0 +1,14 @@
+{
+  "apps": [
+    {
+      "id": "app-esempio",
+      "title": "La mia applicazione",
+      "category": "Produttività",
+      "repository": "https://github.com/UTENTE/REPOSITORY-APP",
+      "branch": "main",
+      "composeFile": "compose.yaml",
+      "url": "http://localhost:3000",
+      "autoDeploy": false
+    }
+  ]
+}

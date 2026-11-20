@@ -1,0 +1,11 @@
+# Esempio da mettere nella repository della SINGOLA app (non in Local AppHub).
+# Avviare solo codice e immagini provenienti da repository di cui ti fidi.
+# La variabile APPHUB_DATA_DIR identifica un percorso permanente sul tuo PC.
+services:
+  web:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:80"
+    volumes:
+      - "${APPHUB_DATA_DIR}/html:/usr/share/nginx/html:ro"
