@@ -26,7 +26,7 @@
       </nav>
       <div class="sidebar-spacer"></div>
       <div class="local-callout"><span class="green-dot"></span><div><strong>Il tuo spazio privato</strong><small>Le app girano sul tuo computer</small></div></div>
-      <div class="sidebar-footer"><span>LOCAL APPHUB</span><small>v0.1.0</small></div>
+        <div class="sidebar-footer"><span>LOCAL APPHUB</span><small>v0.2.0</small></div>
     </aside>
 
     <main class="main-content">
@@ -55,15 +55,40 @@
         </section>
 
         <section class="apps-section" id="applications">
-          <div class="section-head"><div><div class="eyebrow subdued">LA TUA RACCOLTA</div><h2>Applicazioni <span class="count-chip" id="collectionCount">0</span></h2></div><div class="search-control"><span aria-hidden="true">⌕</span><input id="searchInput" type="search" placeholder="Cerca un'app..." aria-label="Cerca applicazioni"></div></div>
+          <div class="section-head"><div><div class="eyebrow subdued">LA TUA RACCOLTA</div><h2>Applicazioni <span class="count-chip" id="collectionCount">0</span></h2></div><div class="app-head-actions"><div class="search-control"><span aria-hidden="true">⌕</span><input id="searchInput" type="search" placeholder="Cerca un'app..." aria-label="Cerca applicazioni"></div><button type="button" class="primary-button" id="addAppButton">+ Aggiungi app</button></div></div>
           <div class="filter-bar" id="categoryFilters" role="group" aria-label="Filtra per categoria"></div>
           <div class="error-banner" id="syncError" hidden></div>
           <div class="app-grid" id="appGrid" aria-live="polite"></div>
-          <div class="empty-state" id="emptyState" hidden><div class="empty-visual">✦</div><h3>Qui inizia il tuo hub</h3><p>Collega una repository privata di configurazione oppure aggiungi le tue app al file locale. Quando sono pronte, appariranno qui.</p><a href="#setup" class="outline-button">Scopri come iniziare <span>↗</span></a></div>
+          <div class="empty-state" id="emptyState" hidden><div class="empty-visual">✦</div><h3>Qui inizia il tuo hub</h3><p>Collega un catalogo GitHub privato oppure aggiungi la tua prima applicazione direttamente da qui.</p><button type="button" id="emptyAddButton" class="outline-button">Aggiungi la prima app <span>↗</span></button></div>
           <div class="empty-state compact" id="noResults" hidden><h3>Nessuna app trovata</h3><p>Prova a modificare la ricerca o il filtro.</p></div>
         </section>
 
-        <section class="setup-panel" id="setup"><div class="setup-mark">✧</div><div class="setup-copy"><div class="eyebrow subdued">TUTTO SOTTO CONTROLLO</div><h2>Un hub, infinite possibilità.</h2><p>Il catalogo delle app è configurabile sul tuo PC oppure in una tua repository GitHub privata. Le nuove app abilitate al deploy vengono installate automaticamente al prossimo controllo.</p><div class="setup-detail"><span id="configMode">Configurazione locale</span><span class="separator-dot">·</span><span id="syncInterval">Sincronizzazione ogni 60 secondi</span></div></div><a href="https://github.com/emamangiapia/local-apphub#configurazione-delle-app" target="_blank" rel="noopener noreferrer" class="outline-button">Guida alla configurazione ↗</a></section>
+        <section class="setup-panel" id="setup"><div class="setup-mark">✧</div><div class="setup-copy"><div class="eyebrow subdued">TUTTO SOTTO CONTROLLO</div><h2>Un hub, infinite possibilità.</h2><p>Scegli dove salvare il tuo catalogo: solo sul PC oppure in una repository GitHub privata, così potrai modificarlo anche da remoto.</p><div class="setup-detail"><span id="configMode">Configurazione locale</span><span class="separator-dot">·</span><span id="syncInterval">Sincronizzazione ogni 60 secondi</span></div></div><a href="https://github.com/emamangiapia/local-apphub#configurazione-delle-app" target="_blank" rel="noopener noreferrer" class="outline-button">Documentazione ↗</a></section>
+        <section class="configuration-section" aria-label="Impostazioni catalogo">
+          <div class="section-head"><div><div class="eyebrow subdued">CONFIGURAZIONE PERSONALE</div><h2>Gestisci il tuo catalogo</h2></div></div>
+          <div class="configuration-grid">
+            <form id="settingsForm" class="setting-card">
+              <h3>Dove conservare le applicazioni?</h3>
+              <p>Puoi cambiare modalità in qualsiasi momento. Il passaggio non elimina le app o i dati dal PC.</p>
+              <label for="configSource">Origine del catalogo</label>
+              <select id="configSource"><option value="local">Sul mio PC (locale)</option><option value="remote">Repository GitHub privata</option></select>
+              <div id="remoteSettings" hidden>
+                <label for="settingsRepo">URL repository di configurazione</label><input id="settingsRepo" type="url" placeholder="https://github.com/utente/config-privata" autocomplete="off">
+                <div class="form-columns"><div><label for="settingsBranch">Branch</label><input id="settingsBranch" value="main"></div><div><label for="settingsFile">File del catalogo</label><input id="settingsFile" value="apps.json"></div></div>
+                <p class="form-hint">La repository deve esistere già ed essere accessibile a Git su questo PC. Le modifiche fatte qui verranno pubblicate con un commit sulla repository privata.</p>
+              </div>
+              <label for="settingsInterval">Controllo automatico (secondi)</label><input id="settingsInterval" type="number" min="30" max="3600" value="60" required>
+              <button type="submit" class="primary-button">Salva impostazioni</button>
+            </form>
+            <div class="setting-card system-card"><h3>Requisiti del sistema</h3><p>Per avviare le app è necessario un motore di container. Consigliamo Rancher Desktop, con motore Moby/dockerd.</p>
+              <div class="health-row"><span>Git</span><span id="healthGit" class="health-pill">Verifica...</span></div>
+              <div class="health-row"><span>Docker Compose</span><span id="healthCompose" class="health-pill">Verifica...</span></div>
+              <div class="health-row"><span>Motore container</span><span id="healthEngine" class="health-pill">Verifica...</span></div>
+              <button type="button" class="outline-button" id="checkRequirements">Ricontrolla requisiti ↻</button>
+              <p class="form-hint">Rancher Desktop è un'alternativa open source a Docker Desktop. Su Windows richiede WSL2 e la virtualizzazione attiva.</p><a href="https://rancherdesktop.io/" target="_blank" rel="noopener noreferrer" class="external-link">Scarica Rancher Desktop ↗</a>
+            </div>
+          </div>
+        </section>
         <footer class="page-footer"><span>© 2026 Emanuele Mangiapia · iPhone Facile</span><span>Il tuo computer. Le tue regole.</span></footer>
       </div>
     </main>
@@ -75,6 +100,25 @@
       <div class="login-footer"><span class="green-dot"></span> Accesso protetto · Dati in locale</div>
     </div>
   </div>
+
+  <div class="login-shell" id="firstRunView" hidden>
+    <div class="login-card"><div class="login-logo"><span>✦</span></div><div class="eyebrow">PRIMO AVVIO · 1 DI 2</div><h1>Iniziamo dal tuo<br><em>spazio privato.</em></h1><p>Crea la password dell'hub. Poi potrai collegare le tue repository dall'interfaccia, senza modificare file di configurazione.</p>
+      <form id="firstRunForm"><label for="firstPassword">CREA UNA PASSWORD (ALMENO 12 CARATTERI)</label><input id="firstPassword" type="password" autocomplete="new-password" minlength="12" required placeholder="Nuova password"><label for="confirmPassword">CONFERMA PASSWORD</label><input id="confirmPassword" type="password" autocomplete="new-password" minlength="12" required placeholder="Ripeti la password"><button type="submit" class="primary-button">Configura il mio hub <span>→</span></button><div id="firstRunError" class="login-error" role="alert" hidden></div></form>
+      <div class="login-footer"><span class="green-dot"></span> Configurazione consentita soltanto sul computer locale</div>
+    </div>
+  </div>
+
+  <dialog id="appDialog" class="app-dialog" aria-labelledby="appDialogTitle"><div class="dialog-head"><div><div class="eyebrow subdued">GESTIONE APPLICAZIONI</div><h2 id="appDialogTitle">Collega una repository</h2></div><button type="button" id="closeAppDialog" class="icon-button" aria-label="Chiudi">×</button></div>
+    <p class="dialog-intro">Inserisci il collegamento GitHub dell'app. Ogni applicazione deve avere il proprio file Docker Compose.</p>
+    <form id="appForm">
+      <div class="form-columns"><div><label for="appId">ID UNIVOCO</label><input id="appId" name="id" pattern="[a-z][a-z0-9-]{0,39}" required placeholder="le-mie-note"></div><div><label for="appTitle">NOME APP</label><input id="appTitle" name="title" required maxlength="80" placeholder="Le mie note"></div></div>
+      <label for="appRepo">REPOSITORY GITHUB</label><input id="appRepo" type="url" name="repository" required placeholder="https://github.com/utente/mia-app">
+      <div class="form-columns"><div><label for="appBranch">BRANCH</label><input id="appBranch" name="branch" value="main" required></div><div><label for="appCompose">FILE COMPOSE</label><input id="appCompose" name="composeFile" value="compose.yaml" required></div></div>
+      <div class="form-columns"><div><label for="appCategory">CATEGORIA</label><input id="appCategory" name="category" value="Altro" required></div><div><label for="appUrl">URL APERTURA (OPZIONALE)</label><input id="appUrl" type="url" name="url" placeholder="http://localhost:3000"></div></div>
+      <label class="checkbox-row"><input id="appAutoDeploy" type="checkbox" name="autoDeploy"><span><strong>Installa e aggiorna automaticamente</strong><small>Il codice di questa repository potrà essere eseguito sul tuo PC. Attiva solo per progetti affidabili.</small></span></label>
+      <div class="dialog-actions"><button type="button" id="removeAppButton" class="danger-button" hidden>Rimuovi dal catalogo</button><div class="dialog-spacer"></div><button type="button" id="cancelAppButton" class="card-button card-quiet">Annulla</button><button type="submit" class="primary-button" id="saveAppButton">Salva applicazione</button></div>
+    </form>
+  </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 </body>
 </html>

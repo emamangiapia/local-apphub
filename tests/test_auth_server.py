@@ -60,5 +60,57 @@ class AuthServerTests(unittest.TestCase):
         self.assertIn("Content-Security-Policy", headers)
 
 
+class FirstRunTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self.tmp.name)
+        self.server = AppHubServer(("127.0.0.1", 0), AppHubManager(self.root), {"127.0.0.1"})
+        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
+        self.thread.start()
+
+    def tearDown(self):
+        self.server.shutdown()
+        self.server.server_close()
+        self.thread.join(timeout=3)
+        self.tmp.cleanup()
+
+    def req(self, method, path, body=None, headers=None):
+        conn = http.client.HTTPConnection("127.0.0.1", self.server.server_port, timeout=5)
+        hdrs = {"Content-Type": "application/json", **(headers or {})}
+        conn.request(method, path, body=None if body is None else json.dumps(body), headers=hdrs)
+        response = conn.getresponse()
+        result = response.status, dict(response.getheaders()), response.read()
+        conn.close()
+        return result
+
+    def test_first_run_from_browser_and_gui_app_crud(self):
+        _, _, body = self.req("GET", "/api/session")
+        self.assertTrue(json.loads(body)["setupRequired"])
+        self.assertEqual(self.req("POST", "/api/setup", {"password": "pass123456789", "confirm": "wrong"})[0], 400)
+        code, headers, body = self.req("POST", "/api/setup", {
+            "password": "pass123456789", "confirm": "pass123456789"})
+        self.assertEqual(code, 200)
+        self.assertTrue((self.root / "auth.json").exists())
+        csrf = json.loads(body)["csrf"]
+        cookie = headers["Set-Cookie"].split(";", 1)[0]
+        auth = {"Cookie": cookie, "X-AppHub-CSRF": csrf}
+        self.assertEqual(self.req("POST", "/api/setup", {
+            "password": "password567890", "confirm": "password567890"})[0], 409)
+        code, _, _ = self.req("POST", "/api/catalog/apps", {
+            "id": "notes", "title": "Note", "repository": "https://github.com/example/notes",
+            "branch": "main", "composeFile": "compose.yaml", "autoDeploy": False}, auth)
+        self.assertEqual(code, 200)
+        code, _, body = self.req("GET", "/api/config", headers=auth)
+        self.assertEqual(code, 200)
+        self.assertEqual(json.loads(body)["apps"][0]["id"], "notes")
+        self.assertEqual(self.req("POST", "/api/catalog/apps/notes/remove", {}, auth)[0], 200)
+        self.assertEqual(self.req("POST", "/api/catalog/apps", {}, {"Cookie": cookie})[0], 403)
+
+    def test_first_setup_rejects_remote_host(self):
+        self.assertEqual(self.req("POST", "/api/setup", {
+            "password": "pass123456789", "confirm": "pass123456789"},
+            {"Host": "evil.example"})[0], 403)
+
+
 if __name__ == "__main__":
     unittest.main()

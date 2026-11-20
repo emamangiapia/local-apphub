@@ -7,8 +7,11 @@ from __future__ import annotations
 
 import os
 import subprocess
+import tempfile
 from hashlib import sha256
 from pathlib import Path
+
+from .config import save_json
 
 
 class OperationError(RuntimeError):
@@ -64,6 +67,39 @@ class GitOps:
         checkout.parent.mkdir(parents=True, exist_ok=True)
         command(["git", "-C", str(cache), "worktree", "add", "--detach", str(checkout), revision], timeout=300)
         return checkout
+
+    def publish_manifest(self, cache: Path, revision: str, branch: str,
+                         manifest_path: str, manifest: dict) -> None:
+        """Commit a private catalogue without force-pushing or rewriting remote history.
+
+        Push fails if someone updated the branch after our fetch. The temporary
+        checkout contains only data generated for this operation.
+        """
+        edit_root = self.root / "temporary-edits"
+        edit_root.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix="catalog-", dir=edit_root) as directory:
+            checkout = Path(directory) / "checkout"
+            created = False
+            try:
+                command(["git", "-C", str(cache), "worktree", "add", "--detach",
+                         str(checkout), revision], timeout=300)
+                created = True
+                destination = (checkout / manifest_path).resolve()
+                if not destination.is_relative_to(checkout.resolve()):
+                    raise OperationError("Percorso del catalogo non sicuro")
+                save_json(destination, manifest)
+                command(["git", "-C", str(checkout), "add", "--", manifest_path])
+                if not command(["git", "-C", str(checkout), "status", "--porcelain"]):
+                    return
+                command(["git", "-C", str(checkout), "-c", "user.name=Local AppHub",
+                         "-c", "user.email=apphub@users.noreply.github.com",
+                         "commit", "-m", "Update application catalogue from Local AppHub"])
+                command(["git", "-C", str(checkout), "push", "origin",
+                         f"HEAD:refs/heads/{branch}"], timeout=300)
+            finally:
+                if created:
+                    command(["git", "-C", str(cache), "worktree", "remove", "--force",
+                             str(checkout)], timeout=60)
 
     def _compose(self, app: dict, checkout: Path, action: list[str]) -> None:
         compose = (checkout / app["composeFile"]).resolve()

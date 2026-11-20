@@ -19,6 +19,7 @@ class FakeGitOps:
         self.stops = 0
         self.starts = 0
         self.fail_sha = None
+        self.published = None
 
     def revision(self, repository, branch):
         return self.root / "fake-cache", self.sha
@@ -36,6 +37,9 @@ class FakeGitOps:
 
     def start(self, app, checkout):
         self.starts += 1
+
+    def publish_manifest(self, cache, revision, branch, manifest_path, manifest):
+        self.published = {"branch": branch, "file": manifest_path, "content": manifest}
 
 
 class ManagerTests(unittest.TestCase):
@@ -97,6 +101,44 @@ class ManagerTests(unittest.TestCase):
         self.manager.sync_once()
         self.assertEqual(self.manager.snapshot()["apps"], [])
         self.assertIn("demo", self.manager.state["deployments"])
+
+    def test_gui_catalog_add_update_remove(self):
+        self.manager.sync_once()
+        added = {"id": "note", "title": "Note", "category": "Personale",
+                 "repository": "https://github.com/example/notes", "composeFile": "compose.yml",
+                 "autoDeploy": False}
+        apps = self.manager.edit_catalog("add", added)
+        self.assertEqual(len(apps), 2)
+        self.assertEqual(self.driver.deployments, [])
+        updated = {**added, "title": "Le mie note"}
+        apps = self.manager.edit_catalog("update", updated, "note")
+        self.assertEqual(apps[1]["title"], "Le mie note")
+        self.assertEqual(AppHubManager(self.root, self.driver)._manifest()[1]["title"], "Le mie note")
+        apps = self.manager.edit_catalog("remove", slug="note")
+        self.assertEqual(len(apps), 1)
+
+    def test_cannot_change_existing_app_id(self):
+        self.manager.sync_once()
+        with self.assertRaisesRegex(Exception, "ID"):
+            self.manager.edit_catalog("update", {**APP, "id": "another"}, "demo")
+
+    def test_gui_settings_persist(self):
+        value = self.manager.update_settings({"syncIntervalSeconds": 120})
+        self.assertEqual(value["syncIntervalSeconds"], 120)
+        self.manager.sync_once()
+        self.assertEqual(self.manager.snapshot()["syncIntervalSeconds"], 120)
+
+    def test_gui_changes_are_published_to_private_catalogue(self):
+        self.manager.update_settings({"configRepository": "https://github.com/example/private-config"})
+        remote = self.root / "snapshots" / "_configuration" / self.driver.sha
+        save_json(remote / "apps.json", {"apps": []})
+        apps = self.manager.edit_catalog("add", {
+            "id": "calendar", "title": "Calendario",
+            "repository": "https://github.com/example/calendar", "autoDeploy": False})
+        self.assertEqual(apps[0]["id"], "calendar")
+        self.assertEqual(self.driver.published["branch"], "main")
+        self.assertEqual(self.driver.published["content"]["apps"][0]["id"], "calendar")
+        self.assertEqual(len(self.manager._manifest()), 0)  # Fake remote has not advanced.
 
 
 if __name__ == "__main__":

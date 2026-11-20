@@ -2,7 +2,7 @@
 "use strict";
 
 const byId = (id) => document.getElementById(id);
-const model = { csrf: null, apps: [], category: "Tutte", search: "", busy: false };
+const model = { csrf: null, apps: [], category: "Tutte", search: "", busy: false, editingSlug: null };
 const statuses = {
   running: { label: "In esecuzione", style: "live" },
   deploying: { label: "Installazione...", style: "working" },
@@ -31,13 +31,22 @@ async function request(path, method = "GET", body = undefined) {
 function showLogin() {
   model.csrf = null;
   byId("dashboard").hidden = true;
+  byId("firstRunView").hidden = true;
   byId("loginView").hidden = false;
+}
+
+function showFirstRun() {
+  model.csrf = null;
+  byId("dashboard").hidden = true;
+  byId("loginView").hidden = true;
+  byId("firstRunView").hidden = false;
 }
 
 function showDashboard(csrf) {
   model.csrf = csrf;
   byId("dashboard").hidden = false;
   byId("loginView").hidden = true;
+  byId("firstRunView").hidden = true;
 }
 
 let toastTimer;
@@ -119,6 +128,12 @@ function appCard(app, index) {
     const warning = el("p", "card-warning", app.error);
     card.append(warning);
   }
+  const manage = el("div", "card-manage");
+  const edit = el("button", "manage-link", "✎ Modifica configurazione");
+  edit.type = "button";
+  edit.addEventListener("click", () => openAppDialog(app));
+  manage.append(edit);
+  card.append(manage);
   return card;
 }
 
@@ -172,6 +187,74 @@ async function refresh() {
   }
 }
 
+function openAppDialog(app = null) {
+  model.editingSlug = app?.id || null;
+  byId("appForm").reset();
+  byId("appDialogTitle").textContent = app ? `Modifica ${app.title}` : "Collega una repository";
+  byId("appId").value = app?.id || "";
+  byId("appId").readOnly = Boolean(app);
+  byId("appTitle").value = app?.title || "";
+  byId("appRepo").value = app?.repository || "";
+  byId("appBranch").value = app?.branch || "main";
+  byId("appCompose").value = app?.composeFile || "compose.yaml";
+  byId("appCategory").value = app?.category || "Altro";
+  byId("appUrl").value = app?.url || "";
+  byId("appAutoDeploy").checked = Boolean(app?.autoDeploy);
+  byId("removeAppButton").hidden = !app;
+  byId("appDialog").showModal();
+}
+
+async function loadConfig() {
+  if (!model.csrf) return;
+  try {
+    const data = await request("/api/config");
+    const settings = data.settings;
+    byId("configSource").value = settings.configRepository ? "remote" : "local";
+    byId("settingsRepo").value = settings.configRepository || "";
+    byId("settingsBranch").value = settings.configBranch || "main";
+    byId("settingsFile").value = settings.configFile || "apps.json";
+    byId("settingsInterval").value = settings.syncIntervalSeconds || 60;
+    updateConfigMode();
+  } catch (error) { notify(error.message); }
+  checkRequirements();
+}
+
+function updateConfigMode() {
+  const remote = byId("configSource").value === "remote";
+  byId("remoteSettings").hidden = !remote;
+  byId("settingsRepo").required = remote;
+}
+
+async function checkRequirements() {
+  if (!model.csrf) return;
+  try {
+    const values = await request("/api/diagnostics");
+    for (const [key, id] of [["gitAvailable", "healthGit"], ["composeAvailable", "healthCompose"], ["containerEngineRunning", "healthEngine"]]) {
+      byId(id).textContent = values[key] ? "Disponibile ✓" : "Da configurare";
+      byId(id).classList.toggle("healthy", Boolean(values[key]));
+    }
+  } catch (error) { notify(`Impossibile verificare i requisiti: ${error.message}`); }
+}
+
+byId("firstRunForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const warning = byId("firstRunError");
+  warning.hidden = true;
+  try {
+    const session = await request("/api/setup", "POST", {
+      password: byId("firstPassword").value,
+      confirm: byId("confirmPassword").value,
+    });
+    byId("firstPassword").value = "";
+    byId("confirmPassword").value = "";
+    showDashboard(session.csrf);
+    await refresh();
+    await loadConfig();
+    byId("setup").scrollIntoView({ behavior: "smooth" });
+    notify("Password creata. Ora scegli dove salvare le app e aggiungi la prima repository.");
+  } catch (error) { warning.textContent = error.message; warning.hidden = false; }
+});
+
 byId("loginForm").addEventListener("submit", async (event) => {
   event.preventDefault();
   const errorNode = byId("loginError");
@@ -182,8 +265,70 @@ byId("loginForm").addEventListener("submit", async (event) => {
     byId("passwordInput").value = "";
     showDashboard(session.csrf);
     await refresh();
+    await loadConfig();
   } catch (error) { errorNode.textContent = error.message; errorNode.hidden = false; }
 });
+
+byId("addAppButton").addEventListener("click", () => openAppDialog());
+byId("emptyAddButton").addEventListener("click", () => openAppDialog());
+byId("closeAppDialog").addEventListener("click", () => byId("appDialog").close());
+byId("cancelAppButton").addEventListener("click", () => byId("appDialog").close());
+
+byId("appForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const button = byId("saveAppButton");
+  button.disabled = true;
+  const item = {
+    id: byId("appId").value.trim(),
+    title: byId("appTitle").value.trim(),
+    repository: byId("appRepo").value.trim(),
+    branch: byId("appBranch").value.trim(),
+    composeFile: byId("appCompose").value.trim(),
+    category: byId("appCategory").value.trim(),
+    url: byId("appUrl").value.trim(),
+    autoDeploy: byId("appAutoDeploy").checked,
+  };
+  try {
+    const path = model.editingSlug ? `/api/catalog/apps/${model.editingSlug}/update` : "/api/catalog/apps";
+    await request(path, "POST", item);
+    byId("appDialog").close();
+    notify(model.editingSlug ? "Modifiche salvate nel catalogo." : "Repository aggiunta. Controllo Git avviato.");
+    await refresh();
+  } catch (error) { notify(error.message); }
+  finally { button.disabled = false; }
+});
+
+byId("removeAppButton").addEventListener("click", async () => {
+  if (!model.editingSlug) return;
+  if (!window.confirm("Rimuovere questa app dal catalogo? I suoi container e dati NON verranno cancellati dal PC.")) return;
+  try {
+    await request(`/api/catalog/apps/${model.editingSlug}/remove`, "POST");
+    byId("appDialog").close();
+    notify("App rimossa dal catalogo. Container e dati restano sul PC.");
+    await refresh();
+  } catch (error) { notify(error.message); }
+});
+
+byId("configSource").addEventListener("change", updateConfigMode);
+byId("settingsForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const button = byId("settingsForm").querySelector("button[type=submit]");
+  button.disabled = true;
+  try {
+    const remote = byId("configSource").value === "remote";
+    await request("/api/settings", "POST", {
+      configRepository: remote ? byId("settingsRepo").value.trim() : null,
+      configBranch: byId("settingsBranch").value.trim(),
+      configFile: byId("settingsFile").value.trim(),
+      syncIntervalSeconds: Number(byId("settingsInterval").value),
+    });
+    notify(remote ? "Catalogo privato collegato. Sto verificando l'accesso a GitHub." : "Catalogo locale attivato.");
+    setTimeout(refresh, 1200);
+  } catch (error) { notify(error.message); }
+  finally { button.disabled = false; }
+});
+
+byId("checkRequirements").addEventListener("click", checkRequirements);
 
 byId("syncButton").addEventListener("click", async () => {
   try {
@@ -207,7 +352,8 @@ byId("searchInput").addEventListener("input", (event) => {
 (async function bootstrap() {
   try {
     const session = await request("/api/session");
-    if (session.authenticated) { showDashboard(session.csrf); await refresh(); }
+    if (session.setupRequired) showFirstRun();
+    else if (session.authenticated) { showDashboard(session.csrf); await refresh(); await loadConfig(); }
     else showLogin();
   } catch { showLogin(); }
   setInterval(refresh, 15000);

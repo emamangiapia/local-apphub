@@ -3,15 +3,17 @@
 from __future__ import annotations
 
 import json
-import os
 import re
+import shutil
 import threading
 from http import cookies
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from .auth import Auth
+from .auth import Auth, initialize_auth
+from .config import ConfigError
+from .gitops import OperationError, command
 from .manager import AppHubManager
 
 
@@ -24,6 +26,7 @@ STATIC_FILES = {
     "/manifest.webmanifest": ("manifest.webmanifest", "application/manifest+json"),
 }
 ACTION_PATH = re.compile(r"^/api/apps/([a-z][a-z0-9-]{0,39})/(deploy|start|stop)$")
+CATALOG_PATH = re.compile(r"^/api/catalog/apps/([a-z][a-z0-9-]{0,39})/(update|remove)$")
 
 
 class AppHubServer(ThreadingHTTPServer):
@@ -34,7 +37,8 @@ class AppHubServer(ThreadingHTTPServer):
                  allowed_hosts: set[str]):
         super().__init__(address, AppHubHandler)
         self.manager = manager
-        self.auth = Auth(manager.root)
+        self.auth = Auth(manager.root) if (manager.root / "auth.json").exists() else None
+        self.setup_lock = threading.Lock()
         self.allowed_hosts = {host.lower() for host in allowed_hosts}
 
 
@@ -81,7 +85,16 @@ class AppHubHandler(BaseHTTPRequestHandler):
             return None
 
     def _csrf(self) -> str | None:
-        return self.server.auth.session(self._session_token())
+        return self.server.auth.session(self._session_token()) if self.server.auth else None
+
+    def _local_setup(self) -> bool:
+        try:
+            hostname = urlsplit("http://" + self.headers.get("Host", "")).hostname
+        except ValueError:
+            return False
+        return (hostname in ("127.0.0.1", "localhost", "::1") and
+                self.client_address[0] in ("127.0.0.1", "::1") and
+                self.server.server_address[0] in ("127.0.0.1", "localhost", "::1"))
 
     def _authenticated(self, *, mutating: bool = False) -> bool:
         csrf = self._csrf()
@@ -132,24 +145,72 @@ class AppHubHandler(BaseHTTPRequestHandler):
             self.wfile.write(data)
         elif path == "/api/session":
             csrf = self._csrf()
-            self._json(200, {"authenticated": bool(csrf), "csrf": csrf})
+            self._json(200, {"authenticated": bool(csrf), "csrf": csrf,
+                             "setupRequired": self.server.auth is None})
         elif path == "/api/status":
             if self._authenticated():
                 self._json(200, self.server.manager.snapshot())
+        elif path == "/api/config":
+            if self._authenticated():
+                self._json(200, self.server.manager.catalog())
+        elif path == "/api/diagnostics":
+            if self._authenticated():
+                self._json(200, self._diagnostics())
         else:
             self._json(404, {"error": "Pagina non trovata"})
+
+    @staticmethod
+    def _diagnostics() -> dict:
+        def available(args: list[str]) -> bool:
+            try:
+                command(args, timeout=5)
+                return True
+            except OperationError:
+                return False
+        return {
+            "gitAvailable": bool(shutil.which("git")),
+            "composeAvailable": available(["docker", "compose", "version"]),
+            "containerEngineRunning": available(["docker", "info", "--format", "{{.ServerVersion}}"]),
+        }
 
     def do_POST(self) -> None:
         if not self._valid_host():
             self._json(403, {"error": "Host non autorizzato"})
             return
         path = self._path()
+        if path == "/api/setup":
+            if not self._local_setup():
+                self._json(403, {"error": "La prima configurazione è consentita solo sul PC locale"})
+                return
+            payload = self._read_body()
+            if payload is None:
+                return
+            with self.server.setup_lock:
+                if self.server.auth is not None:
+                    self._json(409, {"error": "La configurazione iniziale è già stata completata"})
+                    return
+                password = payload.get("password")
+                if (not isinstance(password, str) or len(password) > 1024 or
+                        password != payload.get("confirm")):
+                    self._json(400, {"error": "Le password non coincidono"})
+                    return
+                try:
+                    initialize_auth(self.server.manager.root, password)
+                    self.server.auth = Auth(self.server.manager.root)
+                except (ValueError, RuntimeError) as exc:
+                    self._json(400, {"error": str(exc)})
+                    return
+                token, csrf = self.server.auth.create_session()
+                self._json(200, {"authenticated": True, "csrf": csrf}, self._cookie(token))
+            return
         if path == "/api/login":
             payload = self._read_body()
             if payload is None:
                 return
             password = payload.get("password", "")
-            if not self.server.auth.allow_login(self.client_address[0]):
+            if self.server.auth is None:
+                self._json(409, {"error": "Completa prima la configurazione iniziale"})
+            elif not self.server.auth.allow_login(self.client_address[0]):
                 self._json(429, {"error": "Troppi tentativi. Riprova tra cinque minuti"})
             elif not isinstance(password, str) or len(password) > 1024 or not self.server.auth.verify(password):
                 self._json(401, {"error": "Password non valida"})
@@ -159,7 +220,8 @@ class AppHubHandler(BaseHTTPRequestHandler):
             return
         if not self._authenticated(mutating=True):
             return
-        if self._read_body() is None:
+        payload = self._read_body()
+        if payload is None:
             return
         if path == "/api/logout":
             self.server.auth.logout(self._session_token())
@@ -167,6 +229,28 @@ class AppHubHandler(BaseHTTPRequestHandler):
         elif path == "/api/sync":
             threading.Thread(target=self.server.manager.sync_once, daemon=True).start()
             self._json(202, {"accepted": True})
+        elif path == "/api/settings":
+            try:
+                settings = self.server.manager.update_settings(payload)
+                self._json(200, {"settings": settings})
+                threading.Thread(target=self.server.manager.sync_once, daemon=True).start()
+            except (ConfigError, OSError) as exc:
+                self._json(400, {"error": str(exc)})
+        elif path == "/api/catalog/apps":
+            try:
+                apps = self.server.manager.edit_catalog("add", payload)
+                self._json(200, {"apps": apps})
+                threading.Thread(target=self.server.manager.sync_once, daemon=True).start()
+            except (ConfigError, OperationError, OSError) as exc:
+                self._json(400, {"error": str(exc)})
+        elif catalog_match := CATALOG_PATH.fullmatch(path):
+            slug, operation = catalog_match.groups()
+            try:
+                apps = self.server.manager.edit_catalog(operation, payload, slug)
+                self._json(200, {"apps": apps})
+                threading.Thread(target=self.server.manager.sync_once, daemon=True).start()
+            except (ConfigError, OperationError, OSError) as exc:
+                self._json(400, {"error": str(exc)})
         elif match := ACTION_PATH.fullmatch(path):
             slug, action = match.groups()
             if slug not in {app["id"] for app in self.server.manager.snapshot()["apps"]}:
@@ -186,6 +270,8 @@ def serve(manager: AppHubManager, *, host: str = "127.0.0.1", port: int = 8766,
     hosts = {"localhost", "127.0.0.1", "::1"} | (allowed_hosts or set())
     if host not in ("127.0.0.1", "localhost", "::1"):
         hosts.add(host)
+    if not (manager.root / "auth.json").exists() and host not in ("127.0.0.1", "localhost", "::1"):
+        raise RuntimeError("Prima configurazione consentita solo su localhost")
     with AppHubServer((host, port), manager, hosts) as server:
         print(f"Local AppHub in ascolto su http://{host}:{port}", flush=True)
         threading.Thread(target=manager.sync_once, daemon=True).start()

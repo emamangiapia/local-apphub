@@ -17,6 +17,7 @@ Local AppHub è un gestore di servizi **local-first**, non un sistema di isolame
 - Senza CDN e senza HTML generato a partire dai valori del catalogo.
 - Le sessioni sono solo in memoria: un riavvio richiede un nuovo login.
 - Per un reverse proxy aggiungi l'hostname fidato con `--allowed-host` e usa HTTPS.
+- Se manca ancora la password, la prima configurazione web è permessa **solo su localhost**. Non è possibile avviare il servizio in ascolto sulla rete prima di impostarla.
 
 ## Deploy e dati
 
@@ -25,6 +26,7 @@ Local AppHub è un gestore di servizi **local-first**, non un sistema di isolame
 - I file Compose hanno percorsi relativi controllati. Non si eseguono comandi Git/Docker attraverso una shell.
 - Il rollback dei container non annulla automaticamente modifiche a database o volumi. **Esegui backup prima di upgrade importanti.**
 - Lo stop non usa `docker compose down -v`; rimuovere un'app dal catalogo non cancella i suoi dati.
+- Dalla dashboard è possibile modificare il catalogo remoto solo tramite un commit Git e un **push senza force**, soggetto ai normali controlli di accesso GitHub. I conflitti remoti non vengono sovrascritti.
 - Un altro programma locale con i permessi del tuo utente può leggere i tuoi file anche se la dashboard è protetta da password.
 
 ## Limiti della prima versione

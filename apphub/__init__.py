@@ -3,4 +3,4 @@
 Copyright (c) 2026 Emanuele Mangiapia. PolyForm Noncommercial 1.0.0.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"

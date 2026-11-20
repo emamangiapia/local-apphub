@@ -1,12 +1,20 @@
-# Local AppHub: istruzioni per contributori e agenti
+# Local AppHub: istruzioni universali per agenti AI
 
-Questa è la versione pubblica di **Local AppHub by iPhone Facile**, Emanuele Mangiapia. Non copiare configurazioni, segreti o cronologia dalla precedente repository privata.
+**Valido per Codex, Claude Code, Copilot e agenti che leggono `AGENTS.md`.**
 
-1. Mantieni fuori da Git credenziali, file `.env`, indirizzi personali, nomi delle app private, percorsi dell'utente e dati di installazione.
-2. Il catalogo delle applicazioni deve rimanere personale: sul PC o in una repository GitHub privata separata. Pubblica solo esempi neutri.
-3. Preserva i dati: non eliminare automaticamente volumi o container quando un'app viene rimossa dal catalogo.
-4. Richiedi `autoDeploy: true` esplicito, e rispetta la pausa manuale.
-5. Modifiche ad autenticazione, accesso di rete e deploy richiedono test appropriati.
-6. Mantieni intatti gli avvisi di licenza PolyForm Noncommercial 1.0.0 e l'attribuzione a Emanuele Mangiapia.
+Questa è la repository **pubblica** di Local AppHub by iPhone Facile (Emanuele Mangiapia). L'obiettivo è che un agente, operando sul PC dell'utente con la sua autorizzazione, possa installare, configurare, verificare e mantenere la piattaforma senza obbligarlo a conoscere comandi o file JSON.
 
-Test: `python -m unittest discover -s tests -v`, `python -m compileall -q apphub`, `node --check apphub/static/app.js`.
+**Segui nell'ordine il playbook completo [`docs/AGENT_AUTOPILOT.md`](docs/AGENT_AUTOPILOT.md).** Contiene controllo dei prerequisiti, installazione Windows, configurazione guidata, verifica del watcher, gestione del catalogo e criteri di completamento. Prima di dichiarare il lavoro concluso, segui la checklist finale.
+
+Regole non negoziabili:
+
+1. Non copiare codice storico, configurazioni, token, nomi delle app private, dati, indirizzi o percorsi personali dalla precedente repository privata.
+2. Non chiedere all'utente di comunicare in chat password o token. Le credenziali si configurano tramite l'autenticazione normale del PC/Git e il modulo locale di prima configurazione.
+3. Non esporre la dashboard su Internet o sulla LAN senza autorizzazione specifica e protezioni adeguate. La prima configurazione è solo su localhost.
+4. Non installare o aggiornare app da repository non fidate senza consenso. `autoDeploy` parte sempre da `false`, attivabile esplicitamente.
+5. Non eliminare volumi, container o dati quando un'app sparisce dal catalogo. Non usare `docker compose down -v`.
+6. Non eseguire `git reset --hard`, force-push o operazioni che sovrascrivono modifiche locali. Gli aggiornamenti sono fast-forward e i commit al catalogo GitHub privato usano push non forzati.
+7. Tieni il catalogo personale in `%LOCALAPPDATA%/LocalAppHub` oppure in una repository GitHub privata distinta. In questa repository soltanto esempi placeholder.
+8. Preserva LICENSE PolyForm Noncommercial 1.0.0 e NOTICE attribuendo Emanuele Mangiapia e iPhone Facile.
+
+Test obbligatori dopo modifiche: `python -m unittest discover -s tests -v`, `python -m compileall -q apphub`, `node --check apphub/static/app.js`.

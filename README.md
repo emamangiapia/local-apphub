@@ -4,11 +4,14 @@
 
 Local AppHub è un pannello per gestire applicazioni Docker ospitate sul proprio PC. Ogni app mantiene la sua repository GitHub; l'hub legge un catalogo personale, controlla gli aggiornamenti e può installare nuove app automaticamente. La dashboard è pensata anche per il browser del telefono.
 
-> **Versione 0.1.0, MVP pubblico.** Codice e cronologia sono indipendenti dalla vecchia repository privata. Non sono inclusi dati personali, cataloghi reali, password o indirizzi domestici.
+> **Versione 0.2.0, MVP pubblico.** Codice e cronologia sono indipendenti dalla vecchia repository privata. Non sono inclusi dati personali, cataloghi reali, password o indirizzi domestici.
 
 ## Cosa fa
 
 - Dashboard responsive con categorie, ricerca, stato, pulsanti Installa, Aggiorna, Pausa, Riavvia e Apri.
+- **Prima configurazione guidata** dal browser: password, catalogo personale e controllo dei prerequisiti.
+- **Gestione completa delle repository dalla GUI:** aggiungi, modifica e rimuovi app, scegli branch, file Compose, categoria e deploy automatico.
+- Se usi un catalogo GitHub privato, le modifiche fatte nella GUI vengono committate e inviate al tuo repository con **push non forzati**.
 - Login con password hashata, cookie HttpOnly, protezione CSRF e limitazione dei tentativi.
 - Catalogo locale `apps.json` **oppure** catalogo ospitato in una **repository GitHub privata separata**.
 - Controllo Git ogni **60 secondi** (configurabile), inclusa rilevazione di app nuove e nuovi commit.
@@ -20,7 +23,11 @@ Local AppHub è un pannello per gestire applicazioni Docker ospitate sul proprio
 
 ## Installazione Windows
 
-Servono **Python 3.11+**, **Git**, **Docker Desktop** e Docker Compose v2. Docker Desktop deve essere in esecuzione affinché partano i container.
+Servono **Python 3.11+**, **Git** e un motore container con **Docker Compose v2** per l'esecuzione delle app.
+
+**Soluzione consigliata: [Rancher Desktop](https://rancherdesktop.io/)**, open source, con motore **Moby/dockerd**. Su Windows usa WSL2 e la virtualizzazione; consulta i [requisiti ufficiali](https://docs.rancherdesktop.io/getting-started/installation/). Se hai già Docker Desktop funzionante, puoi continuare a usarlo. La modalità Rancher `containerd`/`nerdctl` non è compatibile direttamente con i comandi `docker compose` attuali.
+
+Puoi installare Local AppHub anche prima di configurare i container: la dashboard segnalerà cosa manca.
 
 Apri PowerShell:
 
@@ -30,7 +37,7 @@ cd local-apphub
 powershell -ExecutionPolicy Bypass -File .\scripts\install-windows.ps1
 ```
 
-Imposta una password di almeno 12 caratteri. L'installer registra l'attività pianificata `iPhoneFacile-LocalAppHub`, avvia il supervisore e rende disponibile la dashboard su **http://127.0.0.1:8766**.
+L'installer registra l'attività pianificata `iPhoneFacile-LocalAppHub`, avvia il supervisore e apre **http://127.0.0.1:8766**. Al primo accesso sul PC, **crea una password di almeno 12 caratteri nella dashboard**, poi scegli la modalità del catalogo e aggiungi la tua prima repository.
 
 Per provare la dashboard senza installare l'attività pianificata:
 
@@ -57,9 +64,13 @@ Esegui backup regolari dei volumi Docker e dei dati personali.
 
 ## Configurazione delle app
 
+**Non devi modificare JSON a mano.** Dopo il login, usa **Aggiungi app** per collegare le repository e **Modifica configurazione** per aggiornarle o rimuoverle dal catalogo. Nella sezione **Gestisci il tuo catalogo** scegli se conservare l'elenco solo sul PC oppure in una repository GitHub privata, senza uscire dalla dashboard.
+
+La rimozione dal catalogo **non disinstalla** l'app da Docker e non cancella i suoi dati. Per i file JSON e la CLI qui sotto, vedi anche le opzioni avanzate.
+
 ### Opzione A: file sul PC
 
-Modifica `%LOCALAPPDATA%\LocalAppHub\apps.json` partendo da [`examples/apps.example.json`](examples/apps.example.json). Sostituisci i placeholder con repository tue:
+Se preferisci editare direttamente il file invece della GUI, modifica `%LOCALAPPDATA%\LocalAppHub\apps.json` partendo da [`examples/apps.example.json`](examples/apps.example.json). Sostituisci i placeholder con repository tue:
 
 ```json
 {
@@ -83,13 +94,15 @@ Questa è l'opzione consigliata se vuoi aggiungere un'app da remoto, usando GitH
 1. Crea **una repository GitHub privata solo per le configurazioni**, distinta dalla repo pubblica Local AppHub e da quelle delle singole app.
 2. Aggiungi `apps.json` con la struttura mostrata sopra.
 3. Autorizza Git sul PC ad accedere alla repository privata (per esempio con Git Credential Manager). Prova un `git clone` manuale per verificare l'accesso. **Non mettere token negli URL.**
-4. Nella cartella `local-apphub` esegui:
+4. Dalla dashboard vai su **Gestisci il tuo catalogo**, seleziona **Repository GitHub privata**, inserisci URL, branch e file e premi **Salva impostazioni**. In alternativa, dalla cartella `local-apphub` usa la CLI:
 
    ```powershell
    py -3 -m apphub set-config --repo https://github.com/UTENTE/REPO-CONFIG-PRIVATA --branch main --file apps.json
    ```
 
-5. Modifica `apps.json` nella repository privata da qualunque dispositivo. Entro circa 60 secondi, **se PC acceso, utente collegato, Docker Desktop e supervisore operativi**, l'hub rileva le modifiche. Con `autoDeploy: true` clona e avvia una nuova app; con `false` la mostra senza installarla.
+5. Da questo momento puoi modificare `apps.json` direttamente su GitHub **oppure usare la dashboard**, che esegue commit e push alla stessa repository privata. Entro circa 60 secondi, **se PC acceso, utente collegato, motore container e supervisore operativi**, l'hub rileva le modifiche. Con `autoDeploy: true` clona e avvia una nuova app; con `false` la mostra senza installarla.
+
+**Nota:** per scrivere nel catalogo remoto dalla GUI Git deve disporre delle credenziali con permesso di push. Se un altro dispositivo ha aggiornato il branch nel frattempo, il push viene rifiutato invece di sovrascrivere la sua modifica.
 
 Per tornare al catalogo locale: `py -3 -m apphub use-local-config`. Puoi usare **Sincronizza ora** nella dashboard per il controllo immediato. La frequenza si configura con `syncIntervalSeconds` (30-3600) in `settings.json`.
 
@@ -135,6 +148,18 @@ Per impostazione predefinita la dashboard ascolta **solo su `127.0.0.1`**. Per u
 
 Self-hosted non vuol dire automaticamente sicuro. I container possono eseguire software e accedere a dati secondo i permessi concessi; abilita il deploy automatico solo per repository affidabili, non usare container privilegiati e non pubblicare `.env` o segreti. Vedi [`docs/SICUREZZA.md`](docs/SICUREZZA.md).
 
+## Setup automatico con Codex, Claude e altri agenti AI
+
+Il repository include istruzioni leggibili dagli agenti:
+
+- [`AGENTS.md`](AGENTS.md) per Codex e altri agenti compatibili;
+- [`CLAUDE.md`](CLAUDE.md) per Claude Code;
+- [`AI_SETUP.md`](AI_SETUP.md) come punto di ingresso universale;
+- [`docs/AGENT_AUTOPILOT.md`](docs/AGENT_AUTOPILOT.md) con il **playbook passo passo** di installazione e verifica;
+- [`.github/copilot-instructions.md`](.github/copilot-instructions.md) per GitHub Copilot.
+
+L'agente può occuparsi di controlli, installazione, avvio e verifica nel suo ambiente. Password, permessi amministrativi e collegamento a repository private possono richiedere l'intervento dell'utente con il normale sistema di autenticazione. Nessun agente è autorizzato ad aggirare questi passaggi.
+
 ## Test e stato del progetto
 
 ```bash
@@ -143,7 +168,7 @@ python -m compileall -q apphub
 node --check apphub/static/app.js
 ```
 
-Questa release è un **MVP**. I test usano Git/Docker simulati. **Il deploy Docker reale e l'attività pianificata Windows non sono ancora stati verificati su un PC Windows.** Mancano editor del catalogo in dashboard, multiutente, backup integrati e configurazione automatica dell'accesso remoto.
+Questa release è un **MVP**. I test includono Git reale per il catalogo e Git/Docker simulati per i deploy. **Il deploy Docker reale e l'attività pianificata Windows non sono ancora stati verificati su un PC Windows.** Mancano ancora multiutente, backup integrati e configurazione automatica dell'accesso remoto.
 
 ## Licenza e autore
 
