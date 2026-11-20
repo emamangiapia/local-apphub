@@ -277,6 +277,37 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .danger-button { border: 2px solid #ed87a1; background: #55334c; color: #ffe1e7; }
 .toast { border: 3px solid var(--green); border-radius: 0; background: #2b3f38; color: #f2ffe3; box-shadow: 7px 7px 0 #070a1b; }
 
+/* Appearance controls are available before login, on first run, and in settings. */
+.theme-switch { display: inline-flex; gap: 3px; align-items: stretch; padding: 4px; background: #1c2445; border: 2px solid #545b85; box-shadow: 3px 3px 0 #080b1c; }
+.theme-switch button { background: none; color: #c3c8df; border: 0; border-radius: 0; padding: 8px 12px; font: 900 10px/1.4 "Lucida Console", "Courier New", monospace; white-space: nowrap; }
+.theme-switch button:hover { background: #31395f; color: #f7f9e9; }
+.theme-switch button[aria-pressed="true"] { background: var(--green); color: #20263c; box-shadow: 2px 2px 0 #080b1e; }
+.theme-switch-login { display: flex; width: 100%; margin: -7px 0 23px; }
+.theme-switch-login button { flex: 1; }
+.first-run-theme { margin: 0 0 10px; text-align: left; }
+.first-run-theme-label { display: block; color: #d3d4ee; font-size: 10px; font-weight: 800; letter-spacing: 1px; margin-bottom: 13px; }
+
+.appearance-section { display: flex; align-items: center; gap: 22px; justify-content: space-between; padding: 24px 26px; margin-top: 23px; background: #1b2342; border: 3px solid #616b98; box-shadow: 6px 6px 0 #080b1d; }
+.appearance-intro { max-width: 235px; flex: 1; }
+.appearance-intro h3 { margin: 0 0 9px; font-size: 15px; text-transform: uppercase; color: var(--green); letter-spacing: -.4px; }
+.appearance-intro p { margin: 0; color: #bdc6dc; font-size: 11px; line-height: 1.65; }
+.theme-choices { display: flex; gap: 13px; flex: 2; }
+.theme-choice { flex: 1; display: flex; min-width: 0; align-items: center; position: relative; gap: 11px; padding: 12px; background: #252e51; border: 2px solid #515b83; box-shadow: 3px 3px 0 #090c20; color: #e4e8ed; text-align: left; cursor: pointer; }
+.theme-choice:hover { border-color: #bcaaff; }
+.theme-choice[aria-pressed="true"] { border-color: var(--green); background: #2f3e49; }
+.theme-choice-copy { display: flex; flex-direction: column; gap: 5px; padding-right: 5px; }
+.theme-choice-copy strong { font-size: 12px; color: #f4f6ed; font-weight: 900; }
+.theme-choice-copy small { font-size: 10px; color: #bac6da; line-height: 1.5; }
+.theme-check { display: none; position: absolute; top: -3px; right: -3px; background: var(--green); padding: 2px 5px; color: #181b2a; font-size: 10px; font-weight: 900; }
+.theme-choice[aria-pressed="true"] .theme-check { display: block; }
+.theme-art { display: block; position: relative; flex: none; width: 70px; height: 60px; overflow: hidden; }
+.theme-art-retro { background: #131931; border: 3px solid #8591be; box-shadow: inset 0 8px 0 #363c68; }
+.theme-art-retro i { position: absolute; width: 13px; height: 13px; background: var(--green); top: 25px; left: 11px; box-shadow: 17px 0 #fc83c9, 34px 0 #a79eff, 0 17px #a79eff, 17px 17px var(--green), 34px 17px #82dbf3; }
+.theme-art-liquid { background: linear-gradient(130deg, #f6dcf4, #b7e8fc); border: 1px solid #fff; }
+.theme-art-liquid i { position: absolute; border-radius: 50%; background: #a3abff; filter: blur(2px); width: 31px; height: 31px; top: 6px; left: 11px; opacity: .85; }
+.theme-art-liquid i:nth-child(2) { background: #fff; opacity: .65; width: 44px; height: 24px; top: 24px; left: 18px; border-radius: 9px; box-shadow: 0 0 2px #7b91d4; }
+.theme-art-liquid i:nth-child(3) { background: #87f2dc; left: 41px; top: 12px; width: 20px; height: 20px; }
+
 @media (max-width: 1250px) {
   .hero-mascot { width: 120px; right: 24px; top: 94px; }
   .hero-mascot img { width: 120px; height: 120px; }
@@ -306,6 +337,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .login-card input, .app-dialog input, .setting-card input, .setting-card select { font-size: 16px; }
   .configuration-grid { gap: 20px; }
   .app-dialog { box-shadow: 4px 4px 0 #080b1d; }
+  .topbar { min-height: 96px; height: auto; flex-direction: column; align-items: stretch; justify-content: center; gap: 10px; padding-top: 10px; padding-bottom: 12px; }
+  .top-actions { justify-content: space-between; gap: 8px; }
+  .theme-switch button { padding: 7px 10px; font-size: 10px; }
+  .appearance-section { flex-direction: column; align-items: stretch; padding: 21px; }
+  .appearance-intro { max-width: none; }
+  .theme-choices { width: 100%; }
+  .theme-choice { flex-direction: column; align-items: flex-start; }
+  .theme-art { width: 100%; }
 }
 
 @media (prefers-reduced-motion: reduce) {

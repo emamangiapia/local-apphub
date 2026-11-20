@@ -58,6 +58,9 @@ class AuthServerTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertIn(b"Local AppHub", body)
         self.assertIn(b"/pixel.css", body)
+        self.assertIn(b"/liquid.css", body)
+        self.assertIn(b"/theme-init.js", body)
+        self.assertIn(b"data-theme-choice=\"liquid\"", body)
         self.assertIn("Content-Security-Policy", headers)
         code, headers, css = self.req("GET", "/pixel.css")
         self.assertEqual(code, 200)
@@ -66,6 +69,8 @@ class AuthServerTests(unittest.TestCase):
         code, _, sprite = self.req("GET", "/mascot.svg")
         self.assertEqual(code, 200)
         self.assertIn(b"shape-rendering=\"crispEdges\"", sprite)
+        self.assertEqual(self.req("GET", "/liquid.css")[0], 200)
+        self.assertEqual(self.req("GET", "/theme-init.js")[0], 200)
 
 
 class FirstRunTests(unittest.TestCase):

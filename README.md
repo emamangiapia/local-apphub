@@ -4,7 +4,7 @@
 
 Local AppHub è un pannello per gestire applicazioni Docker ospitate sul proprio PC. Ogni app mantiene la sua repository GitHub; l'hub legge un catalogo personale, controlla gli aggiornamenti e può installare nuove app automaticamente. La dashboard è pensata anche per il browser del telefono.
 
-> **Versione 0.3.0, MVP pubblico.** Codice e cronologia sono indipendenti dalla vecchia repository privata. Non sono inclusi dati personali, cataloghi reali, password o indirizzi domestici.
+> **Versione 0.4.0, MVP pubblico.** Codice e cronologia sono indipendenti dalla vecchia repository privata. Non sono inclusi dati personali, cataloghi reali, password o indirizzi domestici.
 
 ## Cosa fa
 
@@ -148,9 +148,16 @@ Per impostazione predefinita la dashboard ascolta **solo su `127.0.0.1`**. Per u
 
 Self-hosted non vuol dire automaticamente sicuro. I container possono eseguire software e accedere a dati secondo i permessi concessi; abilita il deploy automatico solo per repository affidabili, non usare container privilegiati e non pubblicare `.env` o segreti. Vedi [`docs/SICUREZZA.md`](docs/SICUREZZA.md).
 
-### Tema pixel art
+### Temi grafici: Retro 8-bit e Liquid
 
-L'interfaccia usa un tema arcade 8-bit predefinito, implementato con CSS e piccole illustrazioni SVG locali. Non carica font o immagini da CDN. Lo stile è separato in [`apphub/static/pixel.css`](apphub/static/pixel.css), così si può aggiornare il design senza toccare la logica del dashboard o le schermate di configurazione.
+L'utente può scegliere tra due temi dall'interfaccia, **già durante il primo avvio**, dalla pagina di accesso, dal selettore nella barra superiore e dalla sezione delle impostazioni:
+
+- **Retro 8-bit**, predefinito: pixel art, illustrazioni locali e pannelli arcade. Stili in [`apphub/static/pixel.css`](apphub/static/pixel.css).
+- **Liquid**: tema originale ispirato alle superfici traslucide, con sfondi morbidi, sfocature, riflessi e pannelli arrotondati. Stili in [`apphub/static/liquid.css`](apphub/static/liquid.css). Non usa nomi, icone o asset ufficiali di altri produttori per identificare il tema.
+
+La preferenza viene salvata **nel browser del dispositivo**. Per esempio, puoi usare Liquid su iPhone e Retro 8-bit sul PC. Non vengono salvate password o credenziali nella preferenza. Entrambi i temi funzionano senza CDN e la scelta non modifica i dati delle app o il catalogo.
+
+La scelta del nome Liquid non garantisce da sola l'assenza di problemi di proprietà intellettuale: il tema deve mantenere un'identità visiva originale e non presentarsi come interfaccia ufficiale di terze parti.
 
 ## Setup automatico con Codex, Claude e altri agenti AI
 

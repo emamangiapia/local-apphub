@@ -9,6 +9,8 @@
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/pixel.css">
+  <link rel="stylesheet" href="/liquid.css">
+  <script src="/theme-init.js"></script>
   <title>Local AppHub | iPhone Facile</title>
   <script src="/app.js" defer></script>
 </head>
@@ -27,7 +29,7 @@
       </nav>
       <div class="sidebar-spacer"></div>
       <div class="local-callout"><span class="green-dot"></span><div><strong>Il tuo spazio privato</strong><small>Le app girano sul tuo computer</small></div></div>
-      <div class="sidebar-footer"><span>LOCAL APPHUB</span><small>v0.3.0</small></div>
+      <div class="sidebar-footer"><span>LOCAL APPHUB</span><small>v0.4.0</small></div>
     </aside>
 
     <main class="main-content">
@@ -35,6 +37,7 @@
         <div class="breadcrumb"><span class="pixel-square" aria-hidden="true"></span> LOCAL SYSTEM <span>/</span> <strong>Panoramica</strong></div>
         <div class="top-actions">
           <div class="network-indicator"><span class="green-dot"></span> In locale</div>
+          <div class="theme-switch" role="group" aria-label="Tema grafico"><button type="button" data-theme-choice="retro" aria-pressed="true">▦ 8-bit</button><button type="button" data-theme-choice="liquid" aria-pressed="false">◉ Liquid</button></div>
           <button class="icon-button" id="logoutButton" type="button" title="Esci dalla dashboard" aria-label="Esci">↪</button>
         </div>
       </header>
@@ -70,6 +73,7 @@
         <section class="setup-panel" id="setup"><div class="setup-mark">✧</div><div class="setup-copy"><div class="eyebrow subdued">TUTTO SOTTO CONTROLLO</div><h2>Un hub, infinite possibilità.</h2><p>Scegli dove salvare il tuo catalogo: solo sul PC oppure in una repository GitHub privata, così potrai modificarlo anche da remoto.</p><div class="setup-detail"><span id="configMode">Configurazione locale</span><span class="separator-dot">·</span><span id="syncInterval">Sincronizzazione ogni 60 secondi</span></div></div><a href="https://github.com/emamangiapia/local-apphub#configurazione-delle-app" target="_blank" rel="noopener noreferrer" class="outline-button">Documentazione ↗</a></section>
         <section class="configuration-section" aria-label="Impostazioni catalogo">
           <div class="section-head"><div><div class="eyebrow subdued">CONFIGURAZIONE PERSONALE</div><h2>Gestisci il tuo catalogo</h2></div></div>
+          <div class="appearance-section"><div class="appearance-intro"><h3>Scegli il tuo stile</h3><p>Due modi di vivere lo stesso hub. Il tema scelto resta salvato su questo dispositivo.</p></div><div class="theme-choices" role="group" aria-label="Scegli il tema"><button type="button" class="theme-choice" data-theme-choice="retro" aria-pressed="true"><span class="theme-art theme-art-retro" aria-hidden="true"><i></i><i></i><i></i></span><span class="theme-choice-copy"><strong>Retro 8-bit</strong><small>Pixel art e atmosfere arcade</small></span><span class="theme-check" aria-hidden="true">✓</span></button><button type="button" class="theme-choice" data-theme-choice="liquid" aria-pressed="false"><span class="theme-art theme-art-liquid" aria-hidden="true"><i></i><i></i><i></i></span><span class="theme-choice-copy"><strong>Liquid</strong><small>Vetro, luce e trasparenze</small></span><span class="theme-check" aria-hidden="true">✓</span></button></div></div>
           <div class="configuration-grid">
             <form id="settingsForm" class="setting-card">
               <h3>Dove conservare le applicazioni?</h3>
@@ -100,6 +104,7 @@
 
   <div class="login-shell" id="loginView">
     <div class="login-card"><div class="login-logo"><img src="/mascot.svg" width="72" height="72" alt="" /></div><div class="eyebrow">IPHONE FACILE PRESENTA</div><h1>Benvenuto nel tuo<br><em>Local AppHub.</em></h1><p>Le tue applicazioni, al sicuro sul tuo computer. Accedi per gestirle.</p>
+      <div class="theme-switch theme-switch-login" role="group" aria-label="Tema grafico"><button type="button" data-theme-choice="retro" aria-pressed="true">▦ Retro 8-bit</button><button type="button" data-theme-choice="liquid" aria-pressed="false">◉ Liquid</button></div>
       <form id="loginForm"><label for="passwordInput">PASSWORD DASHBOARD</label><input id="passwordInput" type="password" autocomplete="current-password" required minlength="12" placeholder="La tua password"><button type="submit" class="primary-button">Entra nel tuo hub <span>→</span></button><div id="loginError" class="login-error" role="alert" hidden></div></form>
       <div class="login-footer"><span class="green-dot"></span> Accesso protetto · Dati in locale</div>
     </div>
@@ -107,6 +112,7 @@
 
   <div class="login-shell" id="firstRunView" hidden>
     <div class="login-card"><div class="login-logo"><img src="/mascot.svg" width="72" height="72" alt="" /></div><div class="eyebrow">PRIMO AVVIO · 1 DI 2</div><h1>Iniziamo dal tuo<br><em>spazio privato.</em></h1><p>Crea la password dell'hub. Poi potrai collegare le tue repository dall'interfaccia, senza modificare file di configurazione.</p>
+      <div class="first-run-theme"><span class="first-run-theme-label">SCEGLI LA GRAFICA</span><div class="theme-switch theme-switch-login" role="group" aria-label="Tema grafico"><button type="button" data-theme-choice="retro" aria-pressed="true">▦ Retro 8-bit</button><button type="button" data-theme-choice="liquid" aria-pressed="false">◉ Liquid</button></div></div>
       <form id="firstRunForm"><label for="firstPassword">CREA UNA PASSWORD (ALMENO 12 CARATTERI)</label><input id="firstPassword" type="password" autocomplete="new-password" minlength="12" required placeholder="Nuova password"><label for="confirmPassword">CONFERMA PASSWORD</label><input id="confirmPassword" type="password" autocomplete="new-password" minlength="12" required placeholder="Ripeti la password"><button type="submit" class="primary-button">Configura il mio hub <span>→</span></button><div id="firstRunError" class="login-error" role="alert" hidden></div></form>
       <div class="login-footer"><span class="green-dot"></span> Configurazione consentita soltanto sul computer locale</div>
     </div>

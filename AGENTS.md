@@ -17,4 +17,4 @@ Regole non negoziabili:
 7. Tieni il catalogo personale in `%LOCALAPPDATA%/LocalAppHub` oppure in una repository GitHub privata distinta. In questa repository soltanto esempi placeholder.
 8. Preserva LICENSE PolyForm Noncommercial 1.0.0 e NOTICE attribuendo Emanuele Mangiapia e iPhone Facile.
 
-Test obbligatori dopo modifiche: `python -m unittest discover -s tests -v`, `python -m compileall -q apphub`, `node --check apphub/static/app.js`.
+Test obbligatori dopo modifiche: `python -m unittest discover -s tests -v`, `python -m compileall -q apphub`, `node --check apphub/static/app.js` e `node --check apphub/static/theme-init.js`. I temi Retro 8-bit e Liquid devono continuare a funzionare senza asset o servizi esterni.
