@@ -96,9 +96,10 @@ function appCard(app, index) {
   const top = el("div", "card-top");
   const icon = el("div", `app-icon tone-${index % 5}`, app.title.trim().charAt(0).toUpperCase() || "A");
   const status = statusOf(app);
+  const slot = el("span", "slot-chip", `#${String(app.slot).padStart(2, "0")}`);
   const chip = el("span", `status-badge ${status.style}`);
   chip.append(el("span", "status-dot"), document.createTextNode(status.label));
-  top.append(icon, chip);
+  top.append(icon, slot, chip);
   const category = el("div", "card-category", app.category);
   const title = el("h3", "card-title", app.title);
   const repo = el("p", "card-repo", app.repository.replace("https://github.com/", ""));
@@ -199,6 +200,7 @@ function openAppDialog(app = null) {
   byId("appCompose").value = app?.composeFile || "compose.yaml";
   byId("appCategory").value = app?.category || "Altro";
   byId("appUrl").value = app?.url || "";
+  byId("appSlot").value = app ? app.slot : "";
   byId("appAutoDeploy").checked = Boolean(app?.autoDeploy);
   byId("removeAppButton").hidden = !app;
   byId("appDialog").showModal();
@@ -289,6 +291,7 @@ byId("appForm").addEventListener("submit", async (event) => {
     url: byId("appUrl").value.trim(),
     autoDeploy: byId("appAutoDeploy").checked,
   };
+  if (byId("appSlot").value.trim() !== "") item.slot = Number(byId("appSlot").value);
   try {
     const path = model.editingSlug ? `/api/catalog/apps/${model.editingSlug}/update` : "/api/catalog/apps";
     await request(path, "POST", item);

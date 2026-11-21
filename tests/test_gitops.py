@@ -4,12 +4,55 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from apphub.gitops import GitOps, OperationError
 
 
 @unittest.skipUnless(shutil.which("git"), "Git non disponibile")
 class GitOpsTests(unittest.TestCase):
+    def test_compose_state_detects_stopped_and_unhealthy_services(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            checkout = root / "snapshot"
+            checkout.mkdir()
+            (checkout / "compose.yaml").write_text("services: {}\n", encoding="utf-8")
+            driver = GitOps(root / "hub")
+            app = {"id": "demo", "composeFile": "compose.yaml"}
+            running = {"Service": "web", "State": "running", "Health": "healthy", "ExitCode": 0}
+            completed = {"Service": "migration", "State": "exited", "Health": "", "ExitCode": 0}
+            configuration = json.dumps({"services": {"web": {"depends_on": {"migration": {"condition": "service_completed_successfully"}}}, "migration": {},
+                                                     "debug": {"profiles": ["debug"]}}})
+            with patch("apphub.gitops.command", side_effect=[configuration, json.dumps(running) + "\n" + json.dumps(completed)]):
+                self.assertTrue(driver.is_running(app, checkout))
+            with patch("apphub.gitops.command", side_effect=[configuration, json.dumps([running, completed])]):
+                self.assertTrue(driver.is_running(app, checkout))
+            with patch("apphub.gitops.command", side_effect=[configuration, ""]):
+                self.assertFalse(driver.is_running(app, checkout))
+            with patch("apphub.gitops.command", side_effect=[configuration, json.dumps(running)]):
+                self.assertFalse(driver.is_running(app, checkout))  # Missing migration service.
+            exited_web = {**running, "State": "exited", "ExitCode": 0}
+            with patch("apphub.gitops.command", side_effect=[configuration, json.dumps([exited_web, completed])]):
+                self.assertFalse(driver.is_running(app, checkout))  # Exited web server is not a successful migration.
+            for state in ({**running, "State": "exited", "ExitCode": 1},
+                          {**running, "Health": "unhealthy"}):
+                with self.subTest(state=state), patch("apphub.gitops.command", side_effect=[configuration, json.dumps([state, completed])]):
+                    self.assertFalse(driver.is_running(app, checkout))
+
+    def test_start_restores_missing_container_without_removing_volumes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            checkout = root / "snapshot"
+            checkout.mkdir()
+            (checkout / "compose.yaml").write_text("services: {}\n", encoding="utf-8")
+            driver = GitOps(root / "hub")
+            with patch("apphub.gitops.command", side_effect=[OperationError("Immagine assente"), ""]) as run:
+                driver.start({"id": "demo", "composeFile": "compose.yaml"}, checkout)
+                self.assertEqual(run.call_count, 2)
+                self.assertIn("--no-build", run.call_args_list[0].args[0])
+                self.assertIn("--build", run.call_args_list[1].args[0])
+                self.assertNotIn("down", run.call_args_list[1].args[0])
+
     def test_real_git_fetch_and_immutable_snapshot(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

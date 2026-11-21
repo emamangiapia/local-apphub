@@ -46,6 +46,22 @@ class ConfigTests(unittest.TestCase):
         with self.assertRaises(ConfigError):
             validate_manifest({"apps": [example(), example()]})
 
+    def test_slots_are_sorted_with_gaps_and_old_configs_are_supported(self):
+        first = example(id="a", slot=3)
+        second = example(id="b", slot=0)
+        legacy = example(id="c")
+        apps = validate_manifest({"apps": [first, legacy, second]})
+        self.assertEqual([(app["slot"], app["id"]) for app in apps],
+                         [(0, "b"), (1, "c"), (3, "a")])
+
+    def test_duplicate_or_invalid_slots_are_rejected(self):
+        for slot in (True, "1", -1, 100, 1.5):
+            with self.subTest(slot=slot), self.assertRaises(ConfigError):
+                validate_manifest({"apps": [example(slot=slot)]})
+        with self.assertRaises(ConfigError):
+            validate_manifest({"apps": [example(id="first", slot=3),
+                                        example(id="second", slot=3)]})
+
     def test_settings(self):
         self.assertEqual(validate_settings({})["syncIntervalSeconds"], 60)
         self.assertEqual(validate_settings({})["remoteHostname"], "")

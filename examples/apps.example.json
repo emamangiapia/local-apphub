@@ -2,6 +2,7 @@
   "apps": [
     {
       "id": "app-esempio",
+      "slot": 0,
       "title": "La mia applicazione",
       "category": "Produttività",
       "repository": "https://github.com/UTENTE/REPOSITORY-APP",

@@ -5,6 +5,7 @@ No shell commands, no automatic deletion, and no destructive Docker volume flags
 
 from __future__ import annotations
 
+import json
 import os
 import subprocess
 import tempfile
@@ -101,7 +102,7 @@ class GitOps:
                     command(["git", "-C", str(cache), "worktree", "remove", "--force",
                              str(checkout)], timeout=60)
 
-    def _compose(self, app: dict, checkout: Path, action: list[str]) -> None:
+    def _compose(self, app: dict, checkout: Path, action: list[str]) -> str:
         compose = (checkout / app["composeFile"]).resolve()
         if not compose.is_relative_to(checkout.resolve()) or not compose.is_file():
             raise OperationError("File Docker Compose assente o fuori dal repository")
@@ -109,8 +110,48 @@ class GitOps:
         volume_root.mkdir(parents=True, exist_ok=True)
         env = os.environ.copy()
         env["APPHUB_DATA_DIR"] = str(volume_root.resolve())
-        command(["docker", "compose", "-p", f"apphub-{app['id']}",
-                 "-f", str(compose), *action], cwd=checkout, env=env, timeout=900)
+        return command(["docker", "compose", "-p", f"apphub-{app['id']}",
+                        "-f", str(compose), *action], cwd=checkout, env=env, timeout=900)
+
+    def is_running(self, app: dict, checkout: Path) -> bool:
+        """Inspect actual Compose services, including exited and unhealthy containers."""
+        definition = self._compose(app, checkout, ["config", "--format", "json"])
+        raw = self._compose(app, checkout, ["ps", "--all", "--format", "json"])
+        try:
+            model = json.loads(definition)
+            configured = model["services"]
+            if not isinstance(configured, dict) or not configured:
+                raise ValueError("Nessun servizio Compose configurato")
+            active_profiles = {value.strip() for value in os.environ.get("COMPOSE_PROFILES", "").split(",")
+                               if value.strip()}
+            expected = {
+                name for name, service in configured.items()
+                if not service.get("profiles") or active_profiles.intersection(service["profiles"])
+            }
+            # A completed migration can be healthy, but an exited web server
+            # must be restarted even when its exit code happens to be zero.
+            one_shot = {
+                dependency for name in expected
+                for dependency, options in configured[name].get("depends_on", {}).items()
+                if isinstance(options, dict) and options.get("condition") == "service_completed_successfully"
+            }
+            if not expected:
+                return False
+            if not raw:
+                return False
+            # Docker Compose usually emits JSON Lines; accept JSON arrays too.
+            parsed = json.loads(raw) if raw.startswith("[") else [json.loads(line) for line in raw.splitlines()]
+            services = parsed if isinstance(parsed, list) else [parsed]
+            observed = [service for service in services
+                        if isinstance(service, dict) and service.get("Service") in expected]
+            return expected.issubset({service["Service"] for service in observed}) and all(
+                (service.get("State") == "running" and service.get("Health") != "unhealthy")
+                or (service.get("Service") in one_shot and service.get("State") == "exited"
+                    and service.get("ExitCode") == 0)
+                for service in observed
+            )
+        except (ValueError, TypeError, KeyError, AttributeError) as exc:
+            raise OperationError("Risposta Docker Compose non valida") from exc
 
     def deploy(self, app: dict, checkout: Path) -> None:
         # Validation is performed separately before build and release.
@@ -122,4 +163,9 @@ class GitOps:
         self._compose(app, checkout, ["stop"])
 
     def start(self, app: dict, checkout: Path) -> None:
-        self._compose(app, checkout, ["start"])
+        # Recreate missing containers without rebuilding unless necessary.
+        # Named volumes and APPHUB_DATA_DIR are never removed.
+        try:
+            self._compose(app, checkout, ["up", "-d", "--no-build", "--wait"])
+        except OperationError:
+            self._compose(app, checkout, ["up", "-d", "--build", "--wait"])

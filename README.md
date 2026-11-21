@@ -4,7 +4,7 @@
 
 Local AppHub è un pannello per gestire applicazioni Docker ospitate sul proprio PC. Ogni app mantiene la sua repository GitHub; l'hub legge un catalogo personale, controlla gli aggiornamenti e può installare nuove app automaticamente. La dashboard è pensata anche per il browser del telefono.
 
-> **Versione 0.5.0, MVP pubblico.** Codice e cronologia sono indipendenti dalla vecchia repository privata. Non sono inclusi dati personali, cataloghi reali, password o indirizzi domestici.
+> **Versione 0.6.0, MVP pubblico.** Codice e cronologia sono indipendenti dalla vecchia repository privata. Non sono inclusi dati personali, cataloghi reali, password o indirizzi domestici.
 
 ## Cosa fa
 
@@ -13,6 +13,8 @@ Local AppHub è un pannello per gestire applicazioni Docker ospitate sul proprio
 - **Guida all'accesso privato da telefono:** istruzioni per Tailscale Serve, copia del comando e autorizzazione dell'hostname HTTPS dalla dashboard. Non apre automaticamente porte o tunnel.
 - **Prima configurazione guidata** dal browser: password, catalogo personale e controllo dei prerequisiti.
 - **Gestione completa delle repository dalla GUI:** aggiungi, modifica e rimuovi app, scegli branch, file Compose, categoria e deploy automatico.
+- **Slot fissi e riutilizzabili (0-99):** ogni app conserva la sua posizione, anche dopo riavvii e aggiornamenti. Se una viene rimossa, il posto rimane libero. Lo spostamento su uno slot occupato scambia le posizioni senza scambiare container o dati.
+- **Ripristino dopo il riavvio:** l'hub verifica lo stato reale di Docker Compose e riattiva le app già installate e previste come attive, anche se GitHub è irraggiungibile. Le pause richieste dalla dashboard sono rispettate; quando Docker non è pronto, ritenta ai controlli successivi.
 - Se usi un catalogo GitHub privato, le modifiche fatte nella GUI vengono committate e inviate al tuo repository con **push non forzati**.
 - Login con password hashata, cookie HttpOnly, protezione CSRF e limitazione dei tentativi.
 - Catalogo locale `apps.json` **oppure** catalogo ospitato in una **repository GitHub privata separata**.
@@ -78,6 +80,7 @@ Se preferisci editare direttamente il file invece della GUI, modifica `%LOCALAPP
 {
   "apps": [{
     "id": "le-mie-note",
+    "slot": 0,
     "title": "Le mie note",
     "category": "Produttività",
     "repository": "https://github.com/UTENTE/REPOSITORY-APP",
@@ -113,6 +116,7 @@ Per tornare al catalogo locale: `py -3 -m apphub use-local-config`. Puoi usare *
 | Campo | Significato |
 | --- | --- |
 | `id` | Nome univoco, minuscolo, numeri e trattini |
+| `slot` | Posizione fissa da 0 a 99. Facoltativa: la prima posizione libera viene assegnata automaticamente dalla GUI |
 | `title` | Nome mostrato nella dashboard |
 | `category` | Categoria per i filtri |
 | `repository` | URL HTTPS GitHub della singola app, senza token |
@@ -124,6 +128,8 @@ Per tornare al catalogo locale: `py -3 -m apphub use-local-config`. Puoi usare *
 Il file Compose della tua app può usare la variabile `${APPHUB_DATA_DIR}` per salvare i file in una cartella permanente del PC. Vedi [`examples/compose.example.yaml`](examples/compose.example.yaml). Anche i volumi Docker nominati sono persistenti.
 
 **Dal telefono, `localhost` indica il telefono**, non il PC. I link delle app richiedono un indirizzo raggiungibile dal dispositivo, preferibilmente attraverso VPN privata e HTTPS; l'hub non configura automaticamente i loro reverse proxy.
+
+**Slot e dati sono separati:** lo slot determina soltanto l'ordine del catalogo, non il nome del progetto Compose, la porta o il percorso dei dati. Il nome Docker rimane `apphub-<id>` e `APPHUB_DATA_DIR` usa l'ID univoco. Le vecchie configurazioni JSON senza `slot` continuano a funzionare nell'ordine originale: al primo salvataggio dalla GUI ricevono slot espliciti. Il catalogo personale resta `apps.json`; i singoli file Docker Compose restano YAML. Non sono stati cambiati automaticamente volumi, porte o percorsi di dati preesistenti.
 
 ## Come si aggiornano l'hub e le app
 
@@ -139,6 +145,8 @@ flowchart TD
 - **Hub:** il supervisore applica solo aggiornamenti fast-forward sulla `main` pubblica se il checkout non contiene modifiche locali; poi riavvia la dashboard lasciando i container delle app in esecuzione.
 - **App:** il watcher controlla i branch dichiarati e installa nuovi commit solo dove `autoDeploy` è attivo.
 - **App fermate a mano:** non vengono riavviate automaticamente.
+- **Ripartenza dopo il login:** per le app già installate e non fermate tramite la dashboard, il watcher controlla `docker compose ps --all --format json`; se un servizio manca o non è attivo, prova `docker compose up -d --no-build --wait` e, se serve, ricostruisce usando lo snapshot locale. Non ha bisogno di un nuovo commit Git. Dopo un errore (per esempio motore Docker non pronto) ritenta al controllo successivo.
+- **Arresti eseguiti all'esterno dell'hub:** uno stop fatto direttamente dalla CLI Docker non è registrato come pausa volontaria nell'hub. Quest'ultimo potrebbe riavviare il servizio al controllo successivo: per metterlo in pausa usa il pulsante **Pausa** della dashboard.
 - **App tolte dal catalogo:** non vengono eliminate dal disco né da Docker; eventuali pulizie sono manuali.
 - **GitHub non raggiungibile:** l'hub conserva l'ultima copia valida del catalogo remoto e ritenta.
 
@@ -193,7 +201,7 @@ python -m compileall -q apphub
 node --check apphub/static/app.js
 ```
 
-Questa release è un **MVP**. I test includono Git reale per il catalogo e Git/Docker simulati per i deploy. **Il deploy Docker reale e l'attività pianificata Windows non sono ancora stati verificati su un PC Windows.** Mancano ancora multiutente, backup integrati e configurazione automatica dell'accesso remoto: la guida Tailscale richiede passaggi espliciti da parte dell'utente.
+Questa release è un **MVP**. I test includono Git reale per il catalogo e Git/Docker simulati per i deploy e per il riavvio. **Il deploy Docker reale e l'attività pianificata Windows non sono ancora stati verificati su un PC Windows.** Mancano ancora multiutente, backup integrati, l'editor visuale dei servizi e la configurazione automatica dell'accesso remoto: la guida Tailscale richiede passaggi espliciti da parte dell'utente.
 
 ## Licenza e autore
 

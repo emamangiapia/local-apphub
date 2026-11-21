@@ -7,7 +7,7 @@ import threading
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .config import (ConfigError, read_json, relative_file, save_json,
+from .config import (ConfigError, MAX_APPS, read_json, relative_file, save_json,
                      validate_manifest, validate_settings)
 from .gitops import GitOps, OperationError
 
@@ -100,8 +100,9 @@ class AppHubManager:
                 raw = read_json(path, {"apps": []})
             else:
                 raw = read_json(self.root / "apps.json", {"apps": []})
-            validate_manifest(raw)
-            current = list(raw["apps"])
+            # Preserve legacy positions and unrelated user fields when saving.
+            previous = {app["id"]: app["slot"] for app in validate_manifest(raw)}
+            current = [{**entry, "slot": previous[entry["id"]]} for entry in raw["apps"]]
             ids = {entry["id"] for entry in current}
             if operation == "add":
                 if not isinstance(item, dict):
@@ -112,6 +113,12 @@ class AppHubManager:
             elif operation == "update":
                 if slug not in ids or not isinstance(item, dict) or item.get("id") != slug:
                     raise ConfigError("L'ID di un'app esistente non può essere modificato")
+                new_slot = item.get("slot", previous[slug])
+                # Moving to an occupied position swaps the two apps in one edit.
+                if type(new_slot) is int and 0 <= new_slot < MAX_APPS and new_slot != previous[slug]:
+                    current = [{**entry, "slot": previous[slug]}
+                               if entry["id"] != slug and entry["slot"] == new_slot else entry
+                               for entry in current]
                 current = [{**entry, **item} if entry["id"] == slug else entry for entry in current]
             else:
                 if slug not in ids:
@@ -119,6 +126,9 @@ class AppHubManager:
                 current = [entry for entry in current if entry["id"] != slug]
             updated = {**raw, "apps": current}
             normalized = validate_manifest(updated)
+            slots = {app["id"]: app["slot"] for app in normalized}
+            updated["apps"] = sorted(({**entry, "slot": slots[entry["id"]]} for entry in current),
+                                     key=lambda entry: entry["slot"])
             if repo:
                 self.git.publish_manifest(cache, revision, self.settings["configBranch"],
                                           self.settings["configFile"], updated)
@@ -193,6 +203,23 @@ class AppHubManager:
                         if not app["autoDeploy"] and not record.get("sha"):
                             self._record(slug, status="not-installed", error=None)
                             continue
+                        # Reconcile the real Docker state *before* contacting GitHub.
+                        # A machine can restart while GitHub is unavailable or Docker
+                        # starts later than Local AppHub. Do not touch paused apps.
+                        if record.get("sha") and not record.get("manuallyStopped"):
+                            try:
+                                checkout = self.root / "snapshots" / slug / record["sha"]
+                                if not self.git.is_running(app, checkout):
+                                    self._record(slug, status="deploying", error=None)
+                                    self.git.start(app, checkout)
+                                    self._record(slug, status="running", error=None)
+                                elif record.get("status") != "running" or record.get("error"):
+                                    self._record(slug, status="running", error=None)
+                            except (OperationError, OSError) as exc:
+                                # Docker might not yet be available during boot.
+                                # Keep the saved SHA and retry at the next sync.
+                                self._record(slug, status="error", error=str(exc))
+                                continue
                         cache, revision = self.git.revision(app["repository"], app["branch"])
                         self._record(slug, availableSha=revision)
                         if (app["autoDeploy"] and not record.get("manuallyStopped") and
@@ -201,6 +228,8 @@ class AppHubManager:
                         elif not record.get("sha"):
                             self._record(slug, status="not-installed", error=None)
                     except (OperationError, OSError) as exc:
+                        # A GitHub-only failure should not make a running app
+                        # look offline. Docker recovery failures do need retry.
                         self._record(slug, error=str(exc))
                 with self.state_lock:
                     self.state["lastSyncAt"] = now_iso()

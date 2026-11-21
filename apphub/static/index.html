@@ -35,7 +35,7 @@
       </nav>
       <div class="sidebar-spacer"></div>
       <div class="local-callout"><span class="green-dot"></span><div><strong>Il tuo spazio privato</strong><small>Le app girano sul tuo computer</small></div></div>
-      <div class="sidebar-footer"><span>LOCAL APPHUB</span><small>v0.5.0</small></div>
+      <div class="sidebar-footer"><span>LOCAL APPHUB</span><small>v0.6.0</small></div>
     </aside>
 
     <main class="main-content">
@@ -164,6 +164,8 @@
       <label for="appRepo">REPOSITORY GITHUB</label><input id="appRepo" type="url" name="repository" required placeholder="https://github.com/utente/mia-app">
       <div class="form-columns"><div><label for="appBranch">BRANCH</label><input id="appBranch" name="branch" value="main" required></div><div><label for="appCompose">FILE COMPOSE</label><input id="appCompose" name="composeFile" value="compose.yaml" required></div></div>
       <div class="form-columns"><div><label for="appCategory">CATEGORIA</label><input id="appCategory" name="category" value="Altro" required></div><div><label for="appUrl">URL APERTURA (OPZIONALE)</label><input id="appUrl" type="url" name="url" placeholder="http://localhost:3000"></div></div>
+      <label for="appSlot">POSIZIONE FISSA (SLOT 0-99)</label><input id="appSlot" type="number" name="slot" min="0" max="99" step="1" placeholder="Primo slot libero" aria-describedby="slotHelp">
+      <p class="form-hint" id="slotHelp">Lascia vuoto per usare il primo posto libero. Spostando un'app in uno slot occupato, le due posizioni si scambiano. La posizione non cambia la porta o i dati Docker.</p>
       <label class="checkbox-row"><input id="appAutoDeploy" type="checkbox" name="autoDeploy"><span><strong>Installa e aggiorna automaticamente</strong><small>Il codice di questa repository potrà essere eseguito sul tuo PC. Attiva solo per progetti affidabili.</small></span></label>
       <div class="dialog-actions"><button type="button" id="removeAppButton" class="danger-button" hidden>Rimuovi dal catalogo</button><div class="dialog-spacer"></div><button type="button" id="cancelAppButton" class="card-button card-quiet">Annulla</button><button type="submit" class="primary-button" id="saveAppButton">Salva applicazione</button></div>
     </form>

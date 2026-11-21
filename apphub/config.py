@@ -119,6 +119,16 @@ def validate_manifest(value) -> list[dict]:
     if len(value["apps"]) > MAX_APPS:
         raise ConfigError("Troppe applicazioni nel manifesto")
     names: set[str] = set()
+    occupied: set[int] = set()
+    # Collect explicit positions first so legacy apps cannot take a reserved slot.
+    for item in value["apps"]:
+        if not isinstance(item, dict):
+            raise ConfigError("Ogni applicazione deve essere un oggetto")
+        position = item.get("slot")
+        if position is not None:
+            if type(position) is not int or not 0 <= position < MAX_APPS or position in occupied:
+                raise ConfigError("Slot applicazione non valido o già occupato")
+            occupied.add(position)
     apps = []
     for item in value["apps"]:
         if not isinstance(item, dict):
@@ -142,8 +152,13 @@ def validate_manifest(value) -> list[dict]:
         auto_deploy = item.get("autoDeploy", False)
         if type(auto_deploy) is not bool:
             raise ConfigError("autoDeploy deve essere true oppure false")
+        position = item.get("slot")
+        if position is None:
+            position = next(index for index in range(MAX_APPS) if index not in occupied)
+            occupied.add(position)
         apps.append({
             "id": slug,
+            "slot": position,
             "title": title.strip(),
             "category": category.strip(),
             "repository": github_url(item.get("repository")),
@@ -152,4 +167,4 @@ def validate_manifest(value) -> list[dict]:
             "url": launch_url,
             "autoDeploy": auto_deploy,
         })
-    return apps
+    return sorted(apps, key=lambda app: app["slot"])

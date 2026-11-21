@@ -85,6 +85,7 @@ Linux o altri sistemi: avvia `python -m apphub serve` dalla directory del reposi
 4. Verifica che l'app compaia. Se l'utente autorizza, usa **Installa / aggiorna** e attendi il controllo della riuscita del deploy.
 5. Per modificare usa **Modifica configurazione**. Per rimuovere, conferma che venga tolta **solo dal catalogo**: container, dati e volumi non sono cancellati automaticamente.
 6. In modalità catalogo GitHub privato, ogni modifica viene salvata con **commit e push non forzati**. Se il push fallisce per autenticazione o conflitto, segnala il problema senza riscrivere la cronologia remota.
+7. Controlla che gli slot siano univoci e stabili. Una rimozione libera la posizione senza riassociare container o volumi. Al riavvio verifica che i container attesi siano davvero attivi dopo che Docker è pronto, senza riattivare le app messe in pausa nella GUI.
 
 Il motore esegue un controllo ogni 60 secondi. Le app con `autoDeploy: true` vengono installate/aggiornate automaticamente, ma solo finché non sono state fermate manualmente.
 
