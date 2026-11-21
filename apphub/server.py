@@ -24,10 +24,17 @@ STATIC_FILES = {
     "/style.css": ("style.css", "text/css; charset=utf-8"),
     "/pixel.css": ("pixel.css", "text/css; charset=utf-8"),
     "/liquid.css": ("liquid.css", "text/css; charset=utf-8"),
+    "/mobile-access.css": ("mobile-access.css", "text/css; charset=utf-8"),
     "/theme-init.js": ("theme-init.js", "text/javascript; charset=utf-8"),
     "/mascot.svg": ("mascot.svg", "image/svg+xml"),
     "/favicon.svg": ("favicon.svg", "image/svg+xml"),
     "/manifest.webmanifest": ("manifest.webmanifest", "application/manifest+json"),
+    "/sw.js": ("sw.js", "text/javascript; charset=utf-8"),
+    "/offline.html": ("offline.html", "text/html; charset=utf-8"),
+    "/offline.css": ("offline.css", "text/css; charset=utf-8"),
+    "/icon-192.png": ("icon-192.png", "image/png"),
+    "/icon-512.png": ("icon-512.png", "image/png"),
+    "/apple-touch-icon.png": ("apple-touch-icon.png", "image/png"),
 }
 ACTION_PATH = re.compile(r"^/api/apps/([a-z][a-z0-9-]{0,39})/(deploy|start|stop)$")
 CATALOG_PATH = re.compile(r"^/api/catalog/apps/([a-z][a-z0-9-]{0,39})/(update|remove)$")
@@ -78,7 +85,8 @@ class AppHubHandler(BaseHTTPRequestHandler):
             host = urlsplit(f"http://{host}").hostname or ""
         except ValueError:
             return False
-        return host in self.server.allowed_hosts
+        remote = self.server.manager.settings.get("remoteHostname", "")
+        return host in self.server.allowed_hosts or (bool(remote) and host == remote)
 
     def _session_token(self) -> str | None:
         try:

@@ -16,5 +16,6 @@ Regole non negoziabili:
 6. Non eseguire `git reset --hard`, force-push o operazioni che sovrascrivono modifiche locali. Gli aggiornamenti sono fast-forward e i commit al catalogo GitHub privato usano push non forzati.
 7. Tieni il catalogo personale in `%LOCALAPPDATA%/LocalAppHub` oppure in una repository GitHub privata distinta. In questa repository soltanto esempi placeholder.
 8. Preserva LICENSE PolyForm Noncommercial 1.0.0 e NOTICE attribuendo Emanuele Mangiapia e iPhone Facile.
+9. Per la PWA non memorizzare mai nella cache risposte API, cookie, token, credenziali o dati privati. L'accesso remoto usa di default il proxy HTTPS privato Tailscale Serve su `127.0.0.1`, non l'apertura pubblica della dashboard.
 
-Test obbligatori dopo modifiche: `python -m unittest discover -s tests -v`, `python -m compileall -q apphub`, `node --check apphub/static/app.js` e `node --check apphub/static/theme-init.js`. I temi Retro 8-bit e Liquid devono continuare a funzionare senza asset o servizi esterni.
+Test obbligatori dopo modifiche: `python -m unittest discover -s tests -v`, `python -m compileall -q apphub`, `node --check apphub/static/app.js`, `node --check apphub/static/sw.js` e `node --check apphub/static/theme-init.js`. I temi Retro 8-bit e Liquid devono continuare a funzionare senza asset o servizi esterni.

@@ -1,0 +1,36 @@
+/* Mobile-first PWA and private-access onboarding, shared by Retro and Liquid themes. */
+.mobile-access-section{margin-top:52px;scroll-margin-top:24px}
+.mobile-access-lead{max-width:740px;font-size:13px;line-height:1.8;color:#a3babb;margin:17px 0 22px}
+.mobile-access-grid{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:17px}
+.mobile-access-card{border:1px solid #304950;background:#142330;border-radius:var(--radius);padding:27px;display:flex;flex-direction:column;align-items:flex-start;gap:12px;min-width:0}
+.mobile-access-card h3{font-size:18px;letter-spacing:-.4px;margin:0}
+.mobile-access-card>p,.mobile-steps,.mobile-access-hint{font-size:12px;line-height:1.85;color:#9bb4ba;margin:0}
+.mobile-step-tag{font-size:10px;letter-spacing:1.5px;font-weight:750;color:var(--green)}
+.mobile-access-card .primary-button{margin:8px 0 0}
+.mobile-access-hint{font-size:11px!important;line-height:1.65!important;color:#a4bec3!important}
+.mobile-access-hint[hidden]{display:none!important}
+.mobile-steps{padding-left:20px}.mobile-steps li{padding-left:4px;margin-top:5px}
+.mobile-steps a{text-decoration:underline;text-underline-offset:3px;color:var(--green)}
+.mobile-command{display:flex;width:100%;align-items:center;justify-content:space-between;gap:8px;background:#0e1b27;border:1px solid #3e5559;border-radius:10px;padding:12px 13px}
+.mobile-command code{font-size:12px;color:#caff65;white-space:normal;overflow-wrap:anywhere}
+.mobile-command button{border:1px solid #48675d;color:var(--green);border-radius:7px;padding:8px 10px;background:#203a38;font-weight:650;font-size:11px;cursor:pointer}
+.remote-host-form{width:100%;display:flex;flex-direction:column;gap:9px;border-top:1px solid #334950;padding-top:18px}
+.remote-host-form label{font-size:11px;font-weight:750;color:#c5e9df}
+.remote-host-form input{background:#1b303b;border:1px solid #36505a;border-radius:9px;padding:12px 13px;min-height:44px;color:#eff8f5;width:100%;outline:none;font-size:13px}
+.remote-host-form input:focus{border-color:var(--green)}
+.remote-host-form .outline-button{align-self:flex-start;cursor:pointer;background:transparent}
+.mobile-access-warning{border:1px solid #4b5940;background:#25332b;border-radius:10px;color:#d5dcc6;font-size:11px;line-height:1.8;margin:17px 0 0;padding:16px 18px}
+.mobile-access-warning code{font-size:11px}
+html[data-theme="liquid"] .mobile-access-lead,html[data-theme="liquid"] .mobile-access-card>p,html[data-theme="liquid"] .mobile-steps{color:#5e6c8c}
+html[data-theme="liquid"] .mobile-access-card{background:#ffffffba;border-color:#d9e2ee;box-shadow:0 8px 34px #8394bb17}
+html[data-theme="liquid"] .mobile-step-tag,html[data-theme="liquid"] .mobile-steps a{color:#6556bf}
+html[data-theme="liquid"] .mobile-command{background:#f0f2fb;border-color:#d7ddea}
+html[data-theme="liquid"] .mobile-command code{color:#463d92}
+html[data-theme="liquid"] .mobile-command button{background:#e3ddfd;color:#5548ac;border-color:#d0c6f4}
+html[data-theme="liquid"] .remote-host-form{border-color:#dce3ef}
+html[data-theme="liquid"] .remote-host-form label{color:#394968}
+html[data-theme="liquid"] .remote-host-form input{background:#fff;color:#25345c;border-color:#cbd4e6}
+html[data-theme="liquid"] .mobile-access-hint{color:#6b7b99!important}
+html[data-theme="liquid"] .mobile-access-warning{background:#fff8e8;border-color:#edddb1;color:#7a6439}
+@media(max-width:900px){.mobile-access-grid{grid-template-columns:1fr}}
+@media(max-width:760px){.mobile-access-card{padding:22px}.mobile-access-section{margin-top:45px}.mobile-access-lead{font-size:12px}}

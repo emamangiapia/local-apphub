@@ -4,12 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#11142a">
-  <meta name="description" content="Le tue applicazioni, il tuo computer. Dashboard locale di iPhone Facile.">
+  <meta name="description" content="Le tue app, sempre con te. La potenza resta a casa.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Local AppHub">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/pixel.css">
   <link rel="stylesheet" href="/liquid.css">
+  <link rel="stylesheet" href="/mobile-access.css">
   <script src="/theme-init.js"></script>
   <title>Local AppHub | iPhone Facile</title>
   <script src="/app.js" defer></script>
@@ -26,10 +31,11 @@
         <a class="nav-entry selected" href="/" aria-current="page"><span class="nav-icon">▦</span> Panoramica</a>
         <a class="nav-entry" href="#applications"><span class="nav-icon">◈</span> Applicazioni</a>
         <a class="nav-entry" href="#setup"><span class="nav-icon">◇</span> Configurazione</a>
+        <a class="nav-entry" href="#mobile-access"><span class="nav-icon">▣</span> Sul telefono</a>
       </nav>
       <div class="sidebar-spacer"></div>
       <div class="local-callout"><span class="green-dot"></span><div><strong>Il tuo spazio privato</strong><small>Le app girano sul tuo computer</small></div></div>
-      <div class="sidebar-footer"><span>LOCAL APPHUB</span><small>v0.4.0</small></div>
+      <div class="sidebar-footer"><span>LOCAL APPHUB</span><small>v0.5.0</small></div>
     </aside>
 
     <main class="main-content">
@@ -48,7 +54,7 @@
           <div class="hero-mascot" aria-hidden="true"><div class="mascot-glow"></div><img src="/mascot.svg" alt="" width="180" height="180"><span class="mascot-caption">SYSTEM ONLINE_</span></div>
           <div class="eyebrow"><span class="eyebrow-line"></span> [ PLAYER 01 ] IL TUO SPAZIO DIGITALE</div>
           <div class="heading-row">
-            <div><h1>Le tue app.<br><em>Un unico posto.</em></h1><p>Gestisci e avvia tutte le tue applicazioni self-hosted, direttamente dal tuo spazio personale.</p></div>
+            <div><h1>Le tue app.<br><em>Sempre con te.</em></h1><p>La potenza resta a casa. Utilizza le tue applicazioni da più dispositivi, mentre i dati rimangono sul tuo computer.</p></div>
             <button class="primary-button" id="syncButton" type="button"><span class="sync-icon" aria-hidden="true">↻</span> Sincronizza ora</button>
           </div>
         </section>
@@ -96,6 +102,39 @@
               <p class="form-hint">Rancher Desktop è un'alternativa open source a Docker Desktop. Su Windows richiede WSL2 e la virtualizzazione attiva.</p><a href="https://rancherdesktop.io/" target="_blank" rel="noopener noreferrer" class="external-link">Scarica Rancher Desktop ↗</a>
             </div>
           </div>
+        </section>
+        <section class="mobile-access-section" id="mobile-access" aria-labelledby="mobileAccessTitle">
+          <div class="section-head"><div><div class="eyebrow subdued">[ IL TUO CLOUD PERSONALE ]</div><h2 id="mobileAccessTitle">Porta le tue app sul telefono</h2></div></div>
+          <p class="mobile-access-lead">Aggiungi Local AppHub alla schermata Home e raggiungi il computer con una connessione privata. Le app continuano a funzionare sul PC, non sul telefono.</p>
+          <div class="mobile-access-grid">
+            <article class="mobile-access-card">
+              <span class="mobile-step-tag">01 · SCHERMATA HOME</span>
+              <h3>Una sola icona per tutte le app</h3>
+              <p>Apri Local AppHub dal telefono come una normale app. Il browser potrebbe conservare piccoli file grafici, mai i dati delle tue applicazioni.</p>
+              <button type="button" id="installAppButton" class="primary-button">+ Aggiungi alla Home</button>
+              <p id="installHelp" class="mobile-access-hint" role="status" aria-live="polite">Su iPhone usa Safari e scegli Condividi, poi Aggiungi alla schermata Home.</p>
+            </article>
+            <article class="mobile-access-card">
+              <span class="mobile-step-tag">02 · ACCESSO PRIVATO</span>
+              <h3>Accedi anche fuori casa</h3>
+              <ol class="mobile-steps">
+                <li>Installa <a href="https://tailscale.com/download" target="_blank" rel="noopener noreferrer">Tailscale</a> sul PC e sul telefono, con lo stesso account o con dispositivi autorizzati.</li>
+                <li>Attiva i certificati HTTPS nella tua rete Tailscale. Sul PC esegui il comando seguente in PowerShell:</li>
+              </ol>
+              <div class="mobile-command"><code>tailscale serve --bg 8766</code><button id="copyServeCommand" type="button" aria-label="Copia comando Tailscale">Copia</button></div>
+              <ol class="mobile-steps" start="3">
+                <li>Usa <code>tailscale serve status</code> per leggere il tuo indirizzo HTTPS privato. Salva qui sotto soltanto il nome host.</li>
+                <li>Apri quell'indirizzo dall'iPhone collegato a Tailscale, accedi con la password dell'hub e aggiungilo alla Home.</li>
+              </ol>
+              <form id="remoteAccessForm" class="remote-host-form">
+                <label for="remoteHostname">Nome host privato autorizzato</label>
+                <input id="remoteHostname" type="text" maxlength="253" autocomplete="off" spellcheck="false" placeholder="pc.nome-tailnet.ts.net" aria-describedby="remoteHostHelp">
+                <p id="remoteHostHelp" class="mobile-access-hint">Solo il nome, senza https:// e senza porta. Lascia vuoto per disabilitare l'hostname aggiuntivo. Questo non apre porte o tunnel.</p>
+                <button type="submit" class="outline-button">Salva hostname</button>
+              </form>
+            </article>
+          </div>
+          <p class="mobile-access-warning"><strong>Protezione dei dati:</strong> il computer deve restare acceso. Non usare Tailscale Funnel o un tunnel pubblico senza un ulteriore controllo degli accessi. Gli URL delle singole app devono essere raggiungibili dal telefono: <code>localhost</code> sul telefono non indica il PC.</p>
         </section>
         <footer class="page-footer"><span>© 2026 Emanuele Mangiapia · iPhone Facile</span><span>Il tuo computer. Le tue regole.</span></footer>
       </div>

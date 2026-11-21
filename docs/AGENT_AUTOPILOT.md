@@ -75,6 +75,7 @@ Linux o altri sistemi: avvia `python -m apphub serve` dalla directory del reposi
 4. Se viene scelta la repository privata, chiedi **soltanto l'URL** e il branch/file. La repository deve già esistere o l'utente deve autorizzarne la creazione mediante gli strumenti GitHub normalmente configurati.
 5. Se Git richiede autenticazione privata, usa il flusso normale di Git Credential Manager o dell'account; non mettere token negli URL e non modificare il repository pubblico per aggirare il blocco.
 6. Premi **Ricontrolla requisiti** e verifica gli indicatori nella dashboard.
+7. Se l'utente chiede Local AppHub sul telefono, segui la sezione **Sul telefono** e la guida PWA/Tailscale nel README. Non avviare Tunnel o Serve senza autorizzazione; il proxy privato non deve pubblicare l'hub su Internet.
 
 ## 5. Aggiungi e gestisci le app dalla GUI
 

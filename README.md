@@ -1,14 +1,16 @@
 # Local AppHub by iPhone Facile
 
-**Le tue app. Il tuo computer. Un unico posto.**
+**Le tue app, sempre con te. La potenza resta a casa.**
 
 Local AppHub è un pannello per gestire applicazioni Docker ospitate sul proprio PC. Ogni app mantiene la sua repository GitHub; l'hub legge un catalogo personale, controlla gli aggiornamenti e può installare nuove app automaticamente. La dashboard è pensata anche per il browser del telefono.
 
-> **Versione 0.4.0, MVP pubblico.** Codice e cronologia sono indipendenti dalla vecchia repository privata. Non sono inclusi dati personali, cataloghi reali, password o indirizzi domestici.
+> **Versione 0.5.0, MVP pubblico.** Codice e cronologia sono indipendenti dalla vecchia repository privata. Non sono inclusi dati personali, cataloghi reali, password o indirizzi domestici.
 
 ## Cosa fa
 
 - Dashboard **pixel art** responsive, ispirata a una console 8-bit: icone pixel, pannelli da videogioco e colori arcade, con categorie, ricerca, stato e comandi delle app leggibili anche da smartphone.
+- **Progressive Web App:** icone per iPhone e Android, installazione dalla schermata Home e pagina di avviso quando il PC non è raggiungibile. Nessuna risposta API privata viene salvata offline.
+- **Guida all'accesso privato da telefono:** istruzioni per Tailscale Serve, copia del comando e autorizzazione dell'hostname HTTPS dalla dashboard. Non apre automaticamente porte o tunnel.
 - **Prima configurazione guidata** dal browser: password, catalogo personale e controllo dei prerequisiti.
 - **Gestione completa delle repository dalla GUI:** aggiungi, modifica e rimuovi app, scegli branch, file Compose, categoria e deploy automatico.
 - Se usi un catalogo GitHub privato, le modifiche fatte nella GUI vengono committate e inviate al tuo repository con **push non forzati**.
@@ -146,6 +148,18 @@ Il supervisore parte **al login Windows**, non semplicemente all'accensione elet
 
 Per impostazione predefinita la dashboard ascolta **solo su `127.0.0.1`**. Per usarla fuori casa configura una **VPN privata**, per esempio Tailscale, e un accesso HTTPS al servizio locale. Non esporre direttamente la porta 8766 su Internet.
 
+### Local AppHub dalla schermata Home
+
+1. Installa Local AppHub sul PC e completa la prima configurazione e la password **sul PC**, attraverso `http://127.0.0.1:8766`.
+2. Installa [Tailscale](https://tailscale.com/download) sul PC e sul telefono e assicurati che entrambi i dispositivi siano autorizzati nella stessa rete privata (tailnet). Abilita i certificati HTTPS dalla configurazione Tailscale, se richiesto.
+3. Sul PC, in PowerShell, esegui `tailscale serve --bg 8766`: Serve pubblica la dashboard **soltanto nella tailnet**, usando un proxy HTTPS verso il servizio locale. **Non** utilizzare `tailscale funnel`, che può esporre servizi su Internet.
+4. Esegui `tailscale serve status` per trovare il nome HTTPS privato. Apri **Sul telefono** nella dashboard, inserisci **solo l'hostname** (ad esempio `pc.tailnet.ts.net`, senza `https://`) e premi **Salva hostname**. Il nome viene memorizzato esclusivamente in `settings.json` sul PC e autorizzato dall'hub senza riavviare il server.
+5. Sul telefono collegato a Tailscale visita l'URL HTTPS, effettua l'accesso e premi **Aggiungi alla Home**. Su iPhone apri in Safari, usa **Condividi → Aggiungi alla schermata Home**; su altri dispositivi usa la procedura suggerita dal browser.
+
+L'app installata occupa comunque una piccola quantità di spazio e usa il browser per la visualizzazione, ma l'elaborazione e i dati delle applicazioni restano sul PC. L'unica pagina utilizzabile offline è l'avviso di connessione: **le API, le sessioni e i dati personali non vengono salvati nella cache del service worker**. Se il PC è spento o Tailscale non è raggiungibile, le app non funzionano. Per l'accesso alle **singole** app, il relativo campo `url` deve contenere un URL raggiungibile dal telefono: `localhost` sul telefono **non è** il PC.
+
+Questa guida **non configura automaticamente Tailscale sul sistema né abilita accesso pubblico**. La configurazione di autenticazione e l'eventuale esposizione di servizi rimangono una scelta dell'utente. Per altre soluzioni, come Cloudflare Tunnel, bisogna aggiungere protezioni di accesso separate e autorizzare il dominio attendibile.
+
 Self-hosted non vuol dire automaticamente sicuro. I container possono eseguire software e accedere a dati secondo i permessi concessi; abilita il deploy automatico solo per repository affidabili, non usare container privilegiati e non pubblicare `.env` o segreti. Vedi [`docs/SICUREZZA.md`](docs/SICUREZZA.md).
 
 ### Temi grafici: Retro 8-bit e Liquid
@@ -179,7 +193,7 @@ python -m compileall -q apphub
 node --check apphub/static/app.js
 ```
 
-Questa release è un **MVP**. I test includono Git reale per il catalogo e Git/Docker simulati per i deploy. **Il deploy Docker reale e l'attività pianificata Windows non sono ancora stati verificati su un PC Windows.** Mancano ancora multiutente, backup integrati e configurazione automatica dell'accesso remoto.
+Questa release è un **MVP**. I test includono Git reale per il catalogo e Git/Docker simulati per i deploy. **Il deploy Docker reale e l'attività pianificata Windows non sono ancora stati verificati su un PC Windows.** Mancano ancora multiutente, backup integrati e configurazione automatica dell'accesso remoto: la guida Tailscale richiede passaggi espliciti da parte dell'utente.
 
 ## Licenza e autore
 

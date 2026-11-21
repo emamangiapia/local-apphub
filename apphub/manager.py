@@ -69,7 +69,7 @@ class AppHubManager:
     def update_settings(self, updates: dict) -> dict:
         if not isinstance(updates, dict):
             raise ConfigError("Impostazioni non valide")
-        allowed = {"configRepository", "configBranch", "configFile", "syncIntervalSeconds"}
+        allowed = {"configRepository", "configBranch", "configFile", "syncIntervalSeconds", "remoteHostname"}
         if any(key not in allowed for key in updates):
             raise ConfigError("Campo impostazioni sconosciuto")
         with self.work_lock:

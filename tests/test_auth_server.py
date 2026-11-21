@@ -53,6 +53,20 @@ class AuthServerTests(unittest.TestCase):
         status, _, _ = self.req("GET", "/api/session", headers={"Host": "untrusted.example"})
         self.assertEqual(status, 403)
 
+    def test_remote_host_allowed_only_after_authenticated_configuration(self):
+        remote = {"Host": "pc.tailnet.ts.net"}
+        self.assertEqual(self.req("GET", "/api/session", headers=remote)[0], 403)
+        status, headers, payload = self.req("POST", "/api/login", {"password": "test-password-1234"})
+        self.assertEqual(status, 200)
+        token = json.loads(payload)["csrf"]
+        cookie = headers["Set-Cookie"].split(";", 1)[0]
+        auth = {"Cookie": cookie, "X-AppHub-CSRF": token}
+        self.assertEqual(self.req("POST", "/api/settings", {"remoteHostname": "pc.tailnet.ts.net"}, auth)[0], 200)
+        self.assertEqual(self.req("GET", "/api/session", headers=remote)[0], 200)
+        self.assertEqual(self.req("GET", "/api/status", headers=remote)[0], 401)
+        self.assertEqual(self.req("POST", "/api/settings", {"remoteHostname": ""}, auth)[0], 200)
+        self.assertEqual(self.req("GET", "/api/session", headers=remote)[0], 403)
+
     def test_static_page_available_before_login(self):
         status, headers, body = self.req("GET", "/")
         self.assertEqual(status, 200)
@@ -71,6 +85,29 @@ class AuthServerTests(unittest.TestCase):
         self.assertIn(b"shape-rendering=\"crispEdges\"", sprite)
         self.assertEqual(self.req("GET", "/liquid.css")[0], 200)
         self.assertEqual(self.req("GET", "/theme-init.js")[0], 200)
+
+    def test_pwa_assets_and_offline_privacy(self):
+        code, headers, raw = self.req("GET", "/manifest.webmanifest")
+        self.assertEqual(code, 200)
+        self.assertEqual(headers["Content-Type"], "application/manifest+json")
+        manifest = json.loads(raw)
+        self.assertEqual(manifest["display"], "standalone")
+        self.assertIn("192x192", {entry["sizes"] for entry in manifest["icons"]})
+        self.assertIn("512x512", {entry["sizes"] for entry in manifest["icons"]})
+        for path in ("/icon-192.png", "/icon-512.png", "/apple-touch-icon.png"):
+            code, headers, data = self.req("GET", path)
+            self.assertEqual(code, 200)
+            self.assertEqual(headers["Content-Type"], "image/png")
+            self.assertTrue(data.startswith(b"\x89PNG\r\n\x1a\n"))
+        code, _, sw = self.req("GET", "/sw.js")
+        self.assertEqual(code, 200)
+        self.assertIn(b'url.pathname.startsWith("/api/")', sw)
+        self.assertNotIn(b'caches.open("/api/', sw)
+        code, _, offline = self.req("GET", "/offline.html")
+        self.assertEqual(code, 200)
+        self.assertIn(b"Il tuo PC non", offline)
+        self.assertEqual(self.req("GET", "/offline.css")[0], 200)
+        self.assertEqual(self.req("GET", "/mobile-access.css")[0], 200)
 
 
 class FirstRunTests(unittest.TestCase):

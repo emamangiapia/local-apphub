@@ -13,6 +13,10 @@ from urllib.parse import urlsplit
 SLUG = re.compile(r"^[a-z][a-z0-9-]{0,39}$")
 GITHUB_PATH = re.compile(r"^/[A-Za-z0-9][A-Za-z0-9_.-]{0,99}/[A-Za-z0-9][A-Za-z0-9_.-]{0,99}(?:\.git)?$")
 BRANCH = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._/-]{0,119}$")
+REMOTE_HOSTNAME = re.compile(
+    r"^(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]{1,62}$",
+    re.IGNORECASE,
+)
 MAX_APPS = 100
 
 
@@ -94,11 +98,18 @@ def validate_settings(value: dict) -> dict:
     interval = value.get("syncIntervalSeconds", 60)
     if type(interval) is not int or not 30 <= interval <= 3600:
         raise ConfigError("L'intervallo deve essere tra 30 e 3600 secondi")
+    remote_hostname = value.get("remoteHostname", "")
+    if not isinstance(remote_hostname, str):
+        raise ConfigError("Hostname remoto non valido")
+    remote_hostname = remote_hostname.strip().lower()
+    if remote_hostname and not REMOTE_HOSTNAME.fullmatch(remote_hostname):
+        raise ConfigError("Inserisci soltanto l'hostname HTTPS, senza protocollo, porta o percorso")
     return {
         "configRepository": github_url(repo) if repo else None,
         "configBranch": branch_name(value.get("configBranch", "main")),
         "configFile": relative_file(value.get("configFile", "apps.json"), ".json"),
         "syncIntervalSeconds": interval,
+        "remoteHostname": remote_hostname,
     }
 
 

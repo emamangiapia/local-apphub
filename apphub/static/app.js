@@ -214,6 +214,7 @@ async function loadConfig() {
     byId("settingsBranch").value = settings.configBranch || "main";
     byId("settingsFile").value = settings.configFile || "apps.json";
     byId("settingsInterval").value = settings.syncIntervalSeconds || 60;
+    byId("remoteHostname").value = settings.remoteHostname || "";
     updateConfigMode();
   } catch (error) { notify(error.message); }
   checkRequirements();
@@ -329,6 +330,68 @@ byId("settingsForm").addEventListener("submit", async (event) => {
 });
 
 byId("checkRequirements").addEventListener("click", checkRequirements);
+
+byId("remoteAccessForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const button = byId("remoteAccessForm").querySelector("button[type=submit]");
+  button.disabled = true;
+  try {
+    await request("/api/settings", "POST", { remoteHostname: byId("remoteHostname").value.trim() });
+    notify("Hostname salvato. L'accesso esterno richiede ancora Tailscale Serve e un dispositivo autorizzato.");
+  } catch (error) { notify(error.message); }
+  finally { button.disabled = false; }
+});
+
+byId("copyServeCommand").addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText("tailscale serve --bg 8766");
+    notify("Comando copiato. Eseguilo sul PC dove gira Local AppHub.");
+  } catch { notify("Copia manualmente: tailscale serve --bg 8766"); }
+});
+
+let deferredInstallPrompt = null;
+const installButton = byId("installAppButton");
+const installHelp = byId("installHelp");
+
+window.addEventListener("beforeinstallprompt", (event) => {
+  event.preventDefault();
+  deferredInstallPrompt = event;
+  installHelp.textContent = "Questo browser supporta l'installazione diretta. Tocca il pulsante per continuare.";
+});
+
+window.addEventListener("appinstalled", () => {
+  deferredInstallPrompt = null;
+  installHelp.textContent = "Local AppHub è stato aggiunto al tuo dispositivo.";
+});
+
+installButton.addEventListener("click", async () => {
+  if (window.matchMedia("(display-mode: standalone)").matches || navigator.standalone) {
+    installHelp.textContent = "Stai già utilizzando Local AppHub dalla schermata Home.";
+    return;
+  }
+  if (deferredInstallPrompt) {
+    const prompt = deferredInstallPrompt;
+    deferredInstallPrompt = null;
+    await prompt.prompt();
+    return;
+  }
+  if (location.protocol !== "https:" && !["127.0.0.1", "localhost", "::1"].includes(location.hostname)) {
+    installHelp.textContent = "Per installare l'app dal telefono apri l'indirizzo HTTPS privato configurato con Tailscale Serve.";
+  } else if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
+    installHelp.textContent = "Su iPhone: apri questa pagina in Safari, tocca Condividi e poi Aggiungi alla schermata Home.";
+  } else {
+    installHelp.textContent = "Nel browser apri il menu e scegli Installa app oppure Aggiungi alla schermata Home.";
+  }
+});
+
+// Offline fallback contains no private information. API requests always go directly to the PC.
+if ("serviceWorker" in navigator && window.isSecureContext) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {
+      installHelp.textContent = "Il browser non ha potuto attivare la modalità app. La dashboard web resta disponibile.";
+    });
+  });
+}
 
 byId("syncButton").addEventListener("click", async () => {
   try {

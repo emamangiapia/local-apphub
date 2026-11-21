@@ -17,6 +17,8 @@ Local AppHub è un gestore di servizi **local-first**, non un sistema di isolame
 - Senza CDN e senza HTML generato a partire dai valori del catalogo.
 - Le sessioni sono solo in memoria: un riavvio richiede un nuovo login.
 - Per un reverse proxy aggiungi l'hostname fidato con `--allowed-host` e usa HTTPS.
+- L'hostname privato configurato tramite la GUI viene salvato in `settings.json` e autorizza soltanto il valore dell'header Host. **Non** apre porte, non modifica il bind su localhost e non crea automaticamente tunnel. Verifica sempre i dispositivi autorizzati in Tailscale e disattiva gli accessi che non usi.
+- La PWA conserva in cache esclusivamente risorse grafiche pubbliche e una pagina di errore offline, non risposte `/api/`, dati delle app o credenziali. Non promettere accesso offline alle app.
 - Se manca ancora la password, la prima configurazione web è permessa **solo su localhost**. Non è possibile avviare il servizio in ascolto sulla rete prima di impostarla.
 
 ## Deploy e dati

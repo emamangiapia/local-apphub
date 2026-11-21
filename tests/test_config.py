@@ -48,8 +48,18 @@ class ConfigTests(unittest.TestCase):
 
     def test_settings(self):
         self.assertEqual(validate_settings({})["syncIntervalSeconds"], 60)
+        self.assertEqual(validate_settings({})["remoteHostname"], "")
+        self.assertEqual(validate_settings({"remoteHostname": " PC.My-Tailnet.ts.net "})["remoteHostname"],
+                         "pc.my-tailnet.ts.net")
         with self.assertRaises(ConfigError):
             validate_settings({"syncIntervalSeconds": 1})
+
+    def test_rejects_unsafe_remote_hostnames(self):
+        for hostname in ("https://pc.tailnet.ts.net", "pc.tailnet.ts.net:443", "*.example.com",
+                         "evil.example.com/path", "a_b.example.com", "localhost",
+                         "127.0.0.1", "evil.com\r\nHost: other.com", 42):
+            with self.subTest(hostname=hostname), self.assertRaises(ConfigError):
+                validate_settings({"remoteHostname": hostname})
 
     def test_atomic_json_round_trip(self):
         with tempfile.TemporaryDirectory() as tmp:
